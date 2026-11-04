@@ -62,8 +62,8 @@ This validates archive/backup/receipt/owned files, restores the exact original a
 Arguments: operation, FACEIT root, optional known version.
 
 ```powershell
-node tools/faceit.cjs status "D:\\Apps\\FACEIT" 2.11.0
-node tools/faceit.cjs install "D:\\Apps\\FACEIT" 2.11.0
+node tools/faceit.cjs status "D:\Apps\FACEIT" 2.11.0
+node tools/faceit.cjs install "D:\Apps\FACEIT" 2.11.0
 ```
 
 The root contains app-2.11.0, not resources directly. Hash checks remain. Diagnostic launchers generally use the default root unless documented otherwise.

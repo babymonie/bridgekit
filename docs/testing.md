@@ -43,3 +43,9 @@ Before repo setup, separate runs recorded 51 Node tests, 38 SDK checks, 19 manag
 Fresh receipts appear beside package.json and are Git-ignored because they may contain paths/logs. Check success, freshness, skips and runtime versions. Older fixture labels are not installed build identity; use bridge-install.json.
 
 Node/JSDOM does not prove desktop isolation/visuals. Offline Electron does not prove all live features. A popup opening does not establish statistics, Premium, sign-in, clipboard or upload automation.
+
+## Repository preparation validation — 4 November 2026
+
+The initial source commit passed [GitHub Windows CI](https://github.com/babymonie/bridgekit/actions/runs/41800916234): 51 discovered tests, 46 passed, zero failures and five explicit optional skips (FORECAST package/layout and local archive). A clean local export installed with npm ci and passed 47 tests with four FORECAST skips; the supported local archive was available there. Its actual Electron manager fixture passed 13 SDK/manager checks and explicitly skipped the missing native FORECAST phase. The full local source, with optional fixtures present, passed all 51 Node tests.
+
+These results establish a usable clean source distribution. They do not expand the supported app or native extension matrix.
