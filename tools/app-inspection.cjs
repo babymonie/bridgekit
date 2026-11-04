@@ -16,13 +16,13 @@ function discover(input){
 }
 function executables(archive){const folder=path.dirname(path.dirname(archive));return fs.readdirSync(folder,{withFileTypes:true}).filter(item=>item.isFile()&&(process.platform==='win32'?/\.exe$/i.test(item.name)&&!/^unins|^update|^crashpad|^squirrel\.exe$/i.test(item.name):!item.name.includes('.')&&(fs.statSync(path.join(folder,item.name)).mode&0o111))).map(item=>path.join(folder,item.name));}
 async function inspect(archive,executable){
-  archive=fs.realpathSync(archive);
+  archive=fs.realpathSync.native(archive);
   const blockers=[],warnings=['Structural compatibility is not proof of app startup or plugin compatibility.'];
   if(!fs.statSync(archive).isFile()||fs.statSync(archive).size>MAX_ARCHIVE_SIZE)throw Error('Expected an ASAR file no larger than 512 MiB');
   const bytes=fs.readFileSync(archive);let entry=null,patched=false;const htmlPages=[];
   try{entry=entryInfo(bytes);const files=parse(bytes).header.files;patched=!!(files['bridge-bootstrap.cjs']||files['bridgekit-bootstrap.cjs']||files['bridgekit-bootstrap.mjs']);const collect=(items,prefix='')=>{for(const [name,file]of Object.entries(items)){if(htmlPages.length>=100)break;if(file.files)collect(file.files,prefix+name+'/');else if(name.endsWith('.html')&&!file.unpacked&&!file.link)htmlPages.push(prefix+name);}};collect(files);}catch(error){blockers.push(error.message);}
   const candidates=executables(archive);
-  executable=executable?fs.realpathSync(executable):candidates.length===1?candidates[0]:null;
+  executable=executable?fs.realpathSync.native(executable):candidates.length===1?candidates[0]:null;
   let fuses=null;
   if(!executable)blockers.push('Choose the exact app executable with --exe');
   else try{
