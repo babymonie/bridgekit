@@ -13,6 +13,8 @@
         <dl><dt>Location</dt><dd id="app-path"></dd><dt>Entry</dt><dd id="app-entry"></dd><dt>Executable</dt><dd id="app-exe"></dd></dl>
         <button id="choose-exe" hidden>Choose executableâ€¦</button>
         <ul id="blockers" class="blockers"></ul>
+        <p id="integrity-note" class="callout" hidden>ASAR integrity blocks patching. Review the integrity change to disable it with an executable backup. This weakens tamper protection and invalidates the executable signature.</p>
+        <button id="restore-integrity" hidden>Restore original executable…</button>
         <p id="preset-note" class="callout" hidden>FACEIT uses its tested preset. Existing plugins, data paths and restore workflow are preserved.</p>
         <form id="configuration" novalidate>
           <h3>App access</h3><p class="meta">Choose exactly where plugins may run. No app-page access is inferred automatically.</p>

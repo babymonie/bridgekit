@@ -40,3 +40,7 @@ Reproduce: npm test; npm run manager:verify; npm run faceit:verify; npm run fore
 Fresh ad-cleaner-verification.json records 17 passing checks in Electron 45.2.1 through the actual SDK host and style broker. The offline page reproduces the supplied styled wrapper, Fuse slot attributes, premium placeholder and Google ad iframe. Checks verify zero-height collapse, standalone slots, dynamic insertions and changing class hashes, preservation of ordinary Premium links/match video/queue controls, reapplication after full navigation, stylesheet removal and restoration on disable. The settings page also loads and is disposed properly.
 
 This plugin requests panel and page.styles only. It is packaged separately and disabled by default; the live app was not modified, restarted or reloaded during these checks. Testing proves cosmetic filtering of these patterns, not request blocking or unknown future placements.
+
+## Reviewed Windows integrity preparation (2026-11-04)
+
+84 local Node tests passed. The actual Electron picker fixture passed 13 checks, including native-warning cancellation, integrity-only preparation without archive changes and byte-identical executable restoration. No installed app was changed by these feature tests. The warning defaults to Cancel. Normal patch review remains separate.

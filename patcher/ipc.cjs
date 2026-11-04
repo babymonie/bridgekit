@@ -12,6 +12,7 @@ function bindPatcherIPC({ipcMain,window,controller}){
     if(operation==='addFolder')return controller.pick('folder');
     if(operation==='addFile')return controller.pick('file');
     if(operation==='chooseExecutable')return controller.chooseExecutable(args.id);
+    if(operation==='restoreIntegrity')return controller.integrity(args.id,true);
     if(operation==='operate')return controller.operate(args.id,args.operation,args.config);
     throw Error('Unknown patcher operation');
   });

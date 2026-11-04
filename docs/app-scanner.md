@@ -38,3 +38,5 @@ Installed generic profiles are stored inside the owned sidecar and exported unde
 Select an installed entry to update BridgeKit or restore original app bytes. The target must be stopped. Runtime ownership, original backup and archive hashes are checked again; changed/unowned files are refused. Saved plugin settings remain.
 
 FACEIT uses its existing preset, directories and data format, rather than being migrated into a generic installation. No app is automatically repatched after a vendor update.
+
+On Windows, an integrity-only blocker offers **Review integrity change…**. It displays a signature/tamper-protection warning and changes the single fuse only after confirmation. A separate normal patch review follows. See [integrity preparation and restoration](patching-electron.md#optional-windows-integrity-preparation). Scanning itself remains read-only.

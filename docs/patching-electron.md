@@ -35,9 +35,9 @@ The engine requires a stopped app and rechecks hashes before writes. It uses an 
 
 Backup: app.asar.bridgekit-original. Runtime: resources/bridgekit-runtime beside the archive. The runtime contains its app profile and receipt. The original entry still runs if BridgeKit initialization is skipped.
 
-The general workflow currently requires a packed JavaScript main inside an ASAR no larger than 512 MiB. Default index.js, extensionless .js and directory/index.js entries are resolved. External/unpacked main files, other executable formats, unknown fuse states, protected ASAR builds and macOS bundles are refused. Windows/Linux process checks are implemented; other platforms are not patch-qualified.
+The general workflow currently requires a packed JavaScript main inside an ASAR no larger than 512 MiB. Default index.js, extensionless .js and directory/index.js entries are resolved. External/unpacked main files, other executable formats, unknown fuse states and macOS bundles are refused. Protected ASAR builds require separate Windows integrity preparation before patching. Windows/Linux process checks are implemented; other platforms are not patch-qualified.
 
-The executable is hashed and inspected with @electron/fuses, never rewritten. See [Electron's integrity documentation](https://www.electronjs.org/docs/latest/tutorial/asar-integrity). A vendor may have additional startup/signing checks that static inspection cannot establish.
+The patch engine hashes and inspects the executable with @electron/fuses. The Windows picker also provides a separately reviewed integrity preparation that backs up the executable and disables only its ASAR integrity fuse. This invalidates its signature. See [Electron's integrity documentation](https://www.electronjs.org/docs/latest/tutorial/asar-integrity). A vendor may have additional startup/signing checks that static inspection cannot establish.
 
 A wrapper changes main-module identity. Apps relying on require.main, executable-specific bootstraps, unusual loaders or native session behavior may need an adapter or supported source hook. Do not interpret Candidate as tested compatibility.
 
@@ -52,3 +52,9 @@ npm run bridgekit -- restore --preset faceit
 ```
 
 Its historical exact-build restrictions remain. See [FACEIT instructions](patching-faceit.md). For an app you develop yourself, [source integration](adding-an-adapter.md) avoids archive patching.
+
+## Optional Windows integrity preparation
+
+If ASAR integrity is the only blocker, choose **Review integrity change…**. The native warning defaults to Cancel and explains the loss of tamper protection, invalid executable signature, vendor checks and update risk. Accepting changes only the integrity fuse, preserves an exact `.bridgekit-fuse-original` executable backup and records hashes in `.bridgekit-fuse.json`. It does not patch the archive or start the app. Review page access and choose **Review patch…** afterward. The CLI remains blocked until the executable is prepared separately.
+
+To undo this preparation, first **Restore original app…** if BridgeKit is installed, then **Restore original executable…**. Restoration requires unchanged executable/backup hashes and the original archive hash. Updates or external changes block restoration rather than overwriting a new build. Unknown fuses, launchers without a fuse table, app presets and unsupported platforms cannot use this preparation. Existing manual backups are not adopted automatically.

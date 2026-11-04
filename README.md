@@ -33,7 +33,7 @@ The picker scans standard installation locations and Windows install records. Se
 
 The general engine handles packed JavaScript entry points in standard ASAR layouts, including nested CommonJS and ES modules. Profiles pin the archive and executable hashes. Windows/Linux are the supported generic process-check platforms; macOS bundle patching is inspection-only.
 
-Embedded ASAR integrity protection is detected and refused without changing fuses. Unpacked apps, oversized archives and unsupported entries are reported. Apps with incompatible window preferences or custom startup assumptions may need source integration or a dedicated adapter.
+Embedded ASAR integrity protection blocks ordinary patching. On Windows, Review integrity change offers an explicit warning and backed-up fuse change before a separate patch review. This disables tamper validation and invalidates the executable signature. Unpacked apps, oversized archives and unsupported entries are reported. Apps with incompatible window preferences or custom startup assumptions may need source integration or a dedicated adapter.
 
 The Windows FACEIT 2.10.0/2.11.0 hash-checked preset and existing installation/data format are retained. These are inspected historical builds, not a claim about the latest release. See the [support matrix](docs/supported-apps.md).
 
@@ -98,4 +98,4 @@ npm run demo
 
 Node tests cover scanning, profiles, ownership/rollback, CLI and UI behavior. picker:verify tests the desktop broker/controller against generated fixtures. patcher:verify patches and launches independent CJS/ESM fixtures, tests plugins, updates and restores them. Neither modifies installed user apps. Optional proprietary fixtures explain skips in clean clones.
 
-Original source is [MIT licensed](LICENSE). BridgeKit is independent of the app vendors. It does not weaken integrity fuses/signatures, alter executables/anti-cheat, import authentication databases, or automate account/match actions.
+Original source is [MIT licensed](LICENSE). BridgeKit is independent of the app vendors. The optional reviewed Windows integrity preparation changes the executable and invalidates its signature. BridgeKit does not alter anti-cheat, import authentication databases, or automate account/match actions.

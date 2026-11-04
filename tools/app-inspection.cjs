@@ -30,7 +30,7 @@ async function inspect(archive,executable){
     const wire=await getCurrentFuseWire(executable);
     fuses={version:wire.version,embeddedAsarIntegrity:wire[FuseV1Options.EnableEmbeddedAsarIntegrityValidation]===FuseState.ENABLE};
     if(wire.version!=='1'||![FuseState.DISABLE,FuseState.ENABLE].includes(wire[FuseV1Options.EnableEmbeddedAsarIntegrityValidation]))blockers.push('ASAR integrity fuse state could not be established');
-    if(fuses.embeddedAsarIntegrity)blockers.push('Embedded ASAR integrity is enabled. Use source integration; BridgeKit does not change fuses.');
+    if(fuses.embeddedAsarIntegrity)blockers.push('Embedded ASAR integrity is enabled. Review the integrity change before patching.');
   }catch(error){blockers.push(`Electron fuse inspection unavailable: ${error.message}`);}
   if(process.platform==='darwin'||archive.includes('.app'+path.sep))blockers.push('macOS bundle patching is inspection-only; signing/rollback support is not implemented');
   return{archive,executable,executableCandidates:candidates,sha256:hash(archive),executableSha256:executable?hash(executable):null,name:entry?.manifest.productName||entry?.manifest.name||path.basename(path.dirname(path.dirname(archive))),version:entry?.manifest.version||null,main:entry?.main,moduleType:entry?.type,patched,fuses,htmlPages,blockers,warnings,candidate:blockers.length===0};

@@ -15,8 +15,9 @@ const timer=setTimeout(()=>{report.error='Timed out';finish(1);},45000);
 async function finish(code){clearTimeout(timer);await controller?.cancel().catch(()=>{});unbind?.();for(const w of BrowserWindow.getAllWindows())w.destroy();fs.writeFileSync(path.join(output,'patcher-ui-verification.json'),JSON.stringify(report,null,2));app.exit(code);}
 app.whenReady().then(async()=>{try{
   const fixture=writeApp(root,{id:'sample-notes'}),original=fs.readFileSync(fixture.file),blocked=writeApp(root,{id:'protected-chat',integrity:true});
+  let dialogResponse=0,lastReview;
   const win=new BrowserWindow({width:1180,height:800,show:false,webPreferences:{preload:path.resolve(__dirname,'../patcher/preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false}});
-  controller=new PatcherController({directory:path.join(root,'profiles'),dialog:{showMessageBox:async()=>({response:0})},getWindow:()=>win,notify:update=>win.webContents.send('bridgekit:scan-progress',update)});
+  controller=new PatcherController({directory:path.join(root,'profiles'),dialog:{showMessageBox:async(_window,options)=>{lastReview=options;return{response:dialogResponse};}},getWindow:()=>win,notify:update=>win.webContents.send('bridgekit:scan-progress',update)});
   const scan=controller.scan.bind(controller);controller.scan=()=>scan([root],false);
   controller.apps.set('temporary',{id:'temporary',name:'Scanning fixture',archive:fixture.file,integration:{kind:'generic'},status:'candidate',blockers:[]});
   unbind=bindPatcherIPC({ipcMain,window:win,controller});await win.loadFile(path.resolve(__dirname,'../patcher/index.html'));
@@ -26,6 +27,16 @@ app.whenReady().then(async()=>{try{
   check('Worker scans fixture apps from the actual desktop renderer',controller.list().length===2);
   const item=controller.list().find(a=>a.archive===fixture.file),locked=controller.list().find(a=>a.archive===blocked.file);
   check('Integrity-protected fixture is visibly blocked',locked.status==='blocked');
+  if(process.platform==='win32'){
+    const exeBefore=fs.readFileSync(blocked.executable),archiveBefore=fs.readFileSync(blocked.file);
+    dialogResponse=1;const canceled=await win.webContents.executeJavaScript(`bridgekit.operate(${JSON.stringify(locked.id)},'patch',{})`);
+    check('Canceling the native integrity warning leaves executable unchanged',canceled.canceled&&fs.readFileSync(blocked.executable).equals(exeBefore));
+    dialogResponse=0;const prepared=await win.webContents.executeJavaScript(`bridgekit.operate(${JSON.stringify(locked.id)},'patch',{})`);
+    check('Reviewed integrity preparation disables the fuse without patching the archive',prepared.prepared&&!controller.get(locked.id).fuses.embeddedAsarIntegrity&&fs.readFileSync(blocked.file).equals(archiveBefore)&&!controller.get(locked.id).installed);
+    check('Integrity warning states signature loss and defaults to Cancel',lastReview.type==='warning'&&lastReview.defaultId===1&&lastReview.detail.includes('invalidates'));
+    await win.webContents.executeJavaScript(`bridgekit.restoreIntegrity(${JSON.stringify(locked.id)})`);
+    check('Desktop integrity restoration recovers the byte-identical original executable',fs.readFileSync(blocked.executable).equals(exeBefore)&&controller.get(locked.id).fuses.embeddedAsarIntegrity);
+  }
   await win.webContents.executeJavaScript(`bridgekit.details(${JSON.stringify(item.id)})`);
   const config={appId:'picker-fixture',pageAccess:{origins:[],localPages:['renderer/index.html']},nativeExtensions:false};
   await win.webContents.executeJavaScript(`bridgekit.operate(${JSON.stringify(item.id)},'patch',${JSON.stringify(config)})`);

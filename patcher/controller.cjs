@@ -33,7 +33,25 @@ class PatcherController{
     if(app.profile)return validateProfile({...app.profile,pageAccess:config?.pageAccess||app.profile.pageAccess,nativeExtensions:config?.nativeExtensions??app.profile.nativeExtensions});
     return validateProfile({schemaVersion:1,appId:config?.appId,name:String(app.name),archive:app.archive,executable:app.executable,sha256:app.sha256,executableSha256:app.executableSha256,pageAccess:config?.pageAccess,nativeExtensions:config?.nativeExtensions===true});
   }
+  async integrity(id,restore=false){
+    if(this.busy||this.worker)throw Error('Wait for the current scan/operation');this.busy=true;
+    try{
+      const previous=this.get(id),app=await scanner.candidate(previous.archive,previous.executable);
+      if(app.integration.kind!=='generic')throw Error('Integrity changes are not available for app presets');
+      const other=app.blockers.filter(reason=>!reason.startsWith('Embedded ASAR integrity is enabled.'));
+      if(other.length)throw Error(other.join('\n'));
+      if(restore&&!app.integrityBackup)throw Error('No verified integrity backup');
+      if(!restore&&(!app.fuses?.embeddedAsarIntegrity||app.installed))throw Error('Integrity preparation is not available for this app');
+      if(runningProcesses(app).length)throw Error('Fully exit the app before changing integrity');
+      const title=restore?'Restore original executable':'Disable ASAR integrity';
+      const answer=await this.dialog.showMessageBox(this.getWindow(),{type:'warning',title:title+' · BridgeKit',message:title+': '+app.name+'?',detail:restore?`Executable: ${app.executable}\nRestores the exact saved executable. The app archive must already be restored.`:`Executable: ${app.executable}\n\nThis disables archive tamper validation and invalidates the executable’s digital signature. Vendor checks may prevent startup, and app updates may undo this change. Compatibility is not guaranteed.\n\nBridgeKit will back up the executable and change only this fuse. The archive will remain unchanged. You must review the patch separately afterward.`,buttons:[title,'Cancel'],defaultId:1,cancelId:1});
+      if(answer.response!==0)return{canceled:true,apps:this.list()};
+      const result=await require('../tools/integrity-change.cjs').change(app,restore);
+      const updated=await scanner.candidate(app.archive,app.executable);this.apps.set(updated.id,updated);return{result,app:updated,apps:this.list(),prepared:!restore};
+    }finally{this.busy=false;}
+  }
   async operate(id,operation,config){
+    const selected=this.get(id);if(operation==='patch'&&selected.fuses?.embeddedAsarIntegrity&&selected.blockers.length===1&&selected.blockers[0].startsWith('Embedded ASAR integrity is enabled.'))return this.integrity(id);
     if(this.busy||this.worker)throw Error('Wait for the current scan/operation');if(!['patch','update','restore'].includes(operation))throw Error('Unknown patch operation');
     this.busy=true;
     try{

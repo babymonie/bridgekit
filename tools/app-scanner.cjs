@@ -35,7 +35,8 @@ async function candidate(archive,executable){
     if(fs.existsSync(config))try{const engine=require('./patch-engine.cjs');profile=engine.loadProfile(config);if(profile.archive!==details.archive||profile.executable!==details.executable)throw Error('Installed profile paths do not match this app');installed=(await engine.status(profile)).installed;if(profile.executableSha256!==details.executableSha256)details.blockers.push('App executable changed; inspect/review the new build');}catch(error){details.blockers.push('Installed profile: '+error.message);profile=null;}
     if(details.patched&&!installed)details.blockers.push('Existing bootstrap found; use its original installer or saved profile');
   }
-  return{id,...details,integration,installed,profile,status:details.blockers.length?'blocked':installed?'installed':'candidate'};
+  let integrityBackup=false;try{integrityBackup=!!(details.executable&&require('./integrity-change.cjs').state(details.executable));}catch(error){details.warnings.push(error.message);}
+  return{id,...details,integration,installed,profile,integrityBackup,status:details.blockers.length?'blocked':installed?'installed':'candidate'};
 }
 async function scanApps(options={},progress=()=>{}){
   const defaults=options.includeDefaults===false?{roots:[],warning:null}:defaultRoots(),roots=[...defaults.roots,...options.roots||[]],seen=new Map(),archives=new Set(),unpacked=new Set(),apps=[],issues=[],queue=[];

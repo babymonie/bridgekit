@@ -32,7 +32,7 @@ Closing hides UI and leaves plugins active. Disabling persists, disposes hosts, 
 
 ## App/data rules
 
-Never replace archives/runtime while the app runs. Verify it exited. Preserve exact backups and settings. Refuse unknown hashes, changed/unowned files and automatic repatching. Do not weaken fuses/signatures or modify executables/anti-cheat.
+Never replace archives/runtime while the app runs. Verify it exited. Preserve exact backups and settings. Refuse unknown hashes, changed/unowned files and automatic repatching. Do not alter anti-cheat. The explicit user-authorized Windows integrity preparation is the sole executable exception: require native warning confirmation, closed-app/hash checks, an exact verified backup and a one-byte integrity-fuse change. Never alter other fuses or automatically act during scanning.
 
 Do not import browser databases, cookies, credentials, tokens or authentication state. Do not automate sign-in, matchmaking, invitations, payments or account changes for tests. Never restart/reload active matches. User launch/deployment instructions override suggested checks.
 
@@ -54,7 +54,7 @@ Keep README, SDK and docs current. Supported means exact-build evidence, not Ele
 
 patcher/ is the standalone trusted desktop app picker, separate from each patched app's plugin manager. Scanner results are candidates, not vendor compatibility guarantees. The worker checks standard install roots/records, probes known layouts before bounded breadth-first search, skips profile/cache/link locations, and reports scan limits/errors. Never launch detected apps while scanning.
 
-tools/app-inspection.cjs reads hashes/main entry/fuses; tools/patch-engine.cjs owns profile plans, stopped-app checks, locks, backups, staged sidecars, inventory and restore. tools/native-fs.cjs is required for raw ASAR operations inside Electron; virtualized node:fs must not treat a target archive as an app directory. @electron/fuses is read-only here: never call flipFuses. Unknown/protected states block patching.
+tools/app-inspection.cjs reads hashes/main entry/fuses; tools/patch-engine.cjs owns profile plans, stopped-app checks, locks, backups, staged sidecars, inventory and restore. tools/native-fs.cjs is required for raw ASAR operations inside Electron; virtualized node:fs must not treat a target archive as an app directory. Inspection uses @electron/fuses read-only. Only tools/integrity-change.cjs may call flipFuses after reviewed confirmation; unsupported/unknown states remain blocked. Restore the original archive before the executable.
 
 runtime/app-profile.cjs scopes exact HTTP/custom origins and selected local pages. adapters/generic.cjs defaults native Chrome mode and bundled auto-enable off, with data under ElectronBridge/apps/<id>. Explicit apps metadata keeps FACEIT-specific bundles out of other apps. FACEIT preset preserves its existing paths/receipts/data and does not silently migrate installs.
 

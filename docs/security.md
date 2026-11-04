@@ -24,6 +24,6 @@ Report issues through [SECURITY.md](../SECURITY.md) using minimal synthetic data
 
 ## Desktop app patcher
 
-The standalone picker authenticates its own renderer/frame/entry URL and exposes only named selection/review operations. Scanner workers read install records and file/fuse metadata without launching candidates. App mutations require explicit review, stopped-app and pinned-hash checks. ASAR integrity protection is detected and refused; no fuse or executable is rewritten.
+The standalone picker authenticates its own renderer/frame/entry URL and exposes only named selection/review operations. Scanner workers read install records and file/fuse metadata without launching candidates. App mutations require explicit review, stopped-app and pinned-hash checks. ASAR integrity protection blocks the patch engine. The Windows picker can separately offer a native warning, defaulting to Cancel, to disable only the integrity fuse. This weakens tamper protection and invalidates the executable signature. The operation verifies a stopped app, reviewed hash, exclusive backup and exactly one changed byte. Unknown fuse states remain blocked. Scanning never changes files.
 
 Raw filesystem operations use original-fs inside Electron to avoid ASAR virtualization. Backups and sidecar inventories are checked before update/restore. Generic profile policies do not infer broad origin/file access. A structural candidate may still have unsupported startup/runtime behavior; verify with synthetic fixtures before real account use.
