@@ -1,6 +1,6 @@
 # BridgeKit documentation
 
-Start with [getting started](getting-started.md). For the installed app read [patching FACEIT](patching-faceit.md). For packages use [plugins](plugins.md) and [SDK.md](../SDK.md).
+Start with [getting started](getting-started.md), the [app scanner](app-scanner.md) and [general patching](patching-electron.md). FACEIT has a preserved [preset workflow](patching-faceit.md). For packages use [plugins](plugins.md) and [SDK.md](../SDK.md).
 
 - [Supported apps](supported-apps.md)
 - [Architecture](architecture.md)

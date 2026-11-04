@@ -1,11 +1,11 @@
 'use strict';
-const fs = require('node:fs');
+const fs = require('./native-fs.cjs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 const { patch, member } = require('./archive.cjs');
 const ROOT = path.resolve(__dirname, '..');
-const BUILDS = { '2.10.0': '9978364f76a77da79d632fd90511a54f25d5b3dcf811d32766a0327dfd2d060c', '2.11.0': 'e9db0b789b237733592698166c1355966a15044acf78464b771fb4695f787c12' };
+const BUILDS = require('../profiles/faceit.json').builds;
 const marker = 'electron-bridge-faceit-v1';
 const hash = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 function target(root = path.join(process.env.LOCALAPPDATA || '', 'FACEIT'), version) {
@@ -92,7 +92,7 @@ function update(root, version) {
     const files = {};
     function walk(dir) { for (const entry of fs.readdirSync(dir, { withFileTypes: true })) { const file = path.join(dir, entry.name); if (entry.isDirectory()) walk(file); else files[path.relative(staging, file)] = hash(file); } }
     walk(staging);
-    fs.writeFileSync(path.join(staging, 'bridge-install.json'), JSON.stringify({ ...s.state, runtimeVersion: '0.4.1', updatedAt: new Date().toISOString(), files }, null, 2));
+    fs.writeFileSync(path.join(staging, 'bridge-install.json'), JSON.stringify({ ...s.state, runtimeVersion: require('../package.json').version, updatedAt: new Date().toISOString(), files }, null, 2));
     requireClosed(t);
     if (hash(t.archive) !== s.state.patchedSha256) throw Error('App changed during update');
     fs.renameSync(t.directory, previous); moved = true;

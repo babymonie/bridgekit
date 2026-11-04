@@ -1,43 +1,42 @@
-# Supported apps and compatibility
+# Supported layouts and apps
 
-Electron use alone does not make an app patchable. Each target needs an adapter, approved page boundaries, a compatible runtime, a reversible integration path and exact-build evidence.
+BridgeKit 0.5 uses a general app scanner/profile/patch engine. FACEIT is a tested preset rather than the definition of the platform.
 
-## Tested targets
+## General engine
 
-| App/environment | Platform/build | Status |
-| --- | --- | --- |
-| FACEIT | Windows 2.11.0, recorded archive hash | Working adapter; local SDK/native/manager fixtures and live opening |
-| FACEIT | Windows 2.10.0, recorded archive hash | Recognized installer; historical runtime/rollback evidence |
-| Offline development bench | Pinned development Electron | Included fixture; no vendor app patched |
-| Your own Electron app | You choose runtime/origin | Source integration available; your integration must be tested |
+| Layout/capability | Status |
+| --- | --- |
+| Packed ASAR, nested CommonJS .cjs/.js | Implemented; generated app launch/plugin/update/rollback tested |
+| Packed ASAR, ESM .mjs or type module | Implemented with awaited original entry; generated app tested |
+| Exact HTTP(S)/custom-protocol origins | Explicit profile policy |
+| Selected local HTML pages | Exact contained file policy |
+| Ephemeral sessions with SDK plugins | Tested with native compatibility disabled |
+| Unpacked app or external/unpacked main | Not archive-patchable; use source integration |
+| Embedded ASAR integrity enabled | Blocked; fuses are not changed |
+| Unknown executable/fuse state | Blocked pending correct executable/inspection |
+| macOS signed bundles | Inspection-only; patching unsupported |
+| Archives over 512 MiB | Refused by this version |
 
-Only the FACEIT installer is shipped. Windows is the supported packaged-app workflow. macOS/Linux third-party patching is not implemented or qualified. See [exact hashes](patching-faceit.md).
+Static checks establish candidates, not full app/runtime compatibility. Windows/Linux generic process checks are implemented. App preferences must still allow Node-disabled, context-isolated pages for SDK attachment.
 
-## Known Electron apps without BridgeKit adapters
+## FACEIT preset
 
-These apps appear in [Electron's official app directory](https://www.electronjs.org/apps), checked 4 November 2026. That establishes Electron use, not BridgeKit compatibility.
+The known Windows 2.10.0 and 2.11.0 original hashes remain supported through the existing installer format. 2.11.0 has local SDK/native/manager/live-opening evidence; 2.10.0 has historical rollback/runtime evidence. These are not claims about the latest release. See [hashes and instructions](patching-faceit.md).
 
-| App | BridgeKit status | Next step |
-| --- | --- | --- |
-| Discord | No adapter; untested | Request exact channel/version/platform |
-| Slack | No adapter; untested | Request exact desktop distribution/version |
-| Visual Studio Code | No adapter; untested | Prefer supported extensions where suitable |
-| Obsidian | No adapter; untested | Prefer its supported plugin API where suitable |
-| GitHub Desktop | No adapter; untested | Request exact build and desired feature |
-| Figma desktop | No adapter; untested | Identify desktop-specific need and package channel |
+## Other Electron apps
 
-Do not point the FACEIT patcher at these apps. Packaging, signing, integrity, windows/sessions and updates differ. BridgeKit does not bypass those mechanisms. Propose support through the [App request form](https://github.com/babymonie/bridgekit/issues/new?template=app-request.yml).
+Discord, Slack, Visual Studio Code, Obsidian, GitHub Desktop and Figma appear in [Electron's official directory](https://www.electronjs.org/apps), checked 4 November 2026. No universal per-product guarantee follows. The scanner checks installed builds directly: some are packed candidates, some unpacked, some integrity-protected.
+
+Use a generic reviewed profile where eligible. Apps with unusual startup/window behavior may need dedicated integration; prefer an app's supported plugin API where suitable. Do not relabel a scanned candidate as a fully tested vendor integration.
 
 ## Plugin compatibility
 
-| Package/path | Established behavior | Limits |
+| Package/path | Established | Limits |
 | --- | --- | --- |
-| Hello panel SDK example | Settings, HTML/CSS/scripts and cleanup | Demo; disabled by default |
-| FACEIT Ad Cleaner | Cosmetic collapse, dynamic content and restore | No network blocking or Premium access |
-| User-owned FORECAST 2.0.2 | Content/worker, popup and tested local storage fallback | Not bundled; sync warnings remain; no full live-feature guarantee |
-| User-owned Repeek 5.6.18 | Both approved FACEIT origins reported; permission screen removed in fixture | Background webextension-polyfill Proxy error at chrome.management |
-| User-owned Leetify uploader 0.6.2 | Root-relative paths import correctly | chrome.offscreen unsupported; upload workflow unverified |
+| Hello panel | General SDK settings, page APIs and cleanup | Demo, disabled by default |
+| FACEIT Ad Cleaner | FACEIT-targeted cosmetic collapse/restore | No request blocking/Premium |
+| User-owned FORECAST 2.0.2 | Selected native content/worker/popup/storage fixture | Not distributed; sync warnings remain |
+| User-owned Repeek 5.6.18 | Approved site reporting and permission screen fix | Background management/polyfill error remains |
+| User-owned uploader 0.6.2 | Root-relative resource import | offscreen API unsupported |
 
-Native support covers selected MV3 workers, messaging, resources, local object storage, popup/options and tabs/windows/permission APIs. Required nativeMessaging/debugger packages are rejected. No Web Store downloader, automatic updater, complete optional-host acquisition, full Chrome emulation or cloud sync is implemented.
-
-Never supply raw Node/Electron as a substitute for a missing API.
+Generic profiles default native Chrome mode off. Optional native mode implements only selected MV3 workers, resources, messaging, storage and tabs/windows/permission paths. No complete Chrome emulation, Web Store downloader, automatic updater or cloud sync is promised.

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-Prefer apps you own or supported source hooks. Electron use does not establish safe archive patching. Do not reuse FACEIT's installer by changing a target path.
+Most compatible ASAR apps now use a generated profile through the general engine; see [general patching](patching-electron.md). A dedicated adapter is needed only for special integration behavior. Prefer supported source hooks when you own the app. Electron use alone does not establish safe patchability.
 
 ## Source integration
 
@@ -13,6 +13,8 @@ const { createPluginManager } =
 
 const manager = createPluginManager({
   adapterId: 'my-app',
+  nativeExtensions: false,
+  enableBundledDefaults: false,
   isPageAllowed(value) {
     try { return new URL(value).origin === 'https://app.example.com'; }
     catch { return false; }

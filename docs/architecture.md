@@ -1,39 +1,28 @@
 # Architecture
 
-App integration, trusted management and packages are separate.
+BridgeKit has two separate desktop surfaces: the app patcher selects/qualifies installations; each patched app hosts its own independent plugin manager.
 
 ```mermaid
 flowchart TD
-  A[Adapter: eligible app windows/pages] --> M[Trusted manager]
-  M --> R[Registry and package snapshots]
-  M --> S[Per-plugin SDK host]
-  M --> C[Native Chrome compatibility]
-  P[Sandboxed SDK panel] --> B[Authenticated permission broker]
-  B --> S
-  S --> W[Per-plugin isolated page world]
-  C --> E[Electron extension sessions/settings]
+  S[Installed-app scanner / manual picker] --> P[App profile and compatibility review]
+  P --> E[Generic patch / update / restore engine]
+  P --> F[FACEIT legacy preset]
+  E --> A[Generic app adapter]
+  A --> M[Per-app plugin manager]
+  F --> M
+  M --> R[Registry / snapshots / approved grants]
+  M --> B[Per-plugin SDK broker and isolated page world]
+  M --> C[Optional native Chrome compatibility]
 ```
 
-## Registry and lifecycle
+app-scanner.cjs discovers bounded install locations and reads install records. A worker keeps discovery/hash/fuse work off the picker UI thread. app-inspection.cjs resolves packed main entries, hashes artifacts and reads integrity fuse state. It never executes detected app code.
 
-registry.cjs inspects identities, manifests, containment and fingerprints, storing grants/enabled states separately from runtime status. package-import.cjs stages snapshots/ZIPs before review. normalize-package.cjs adapts copied native packages. plugin-controller.cjs serializes lifecycle and records errors/reload needs.
+patch-engine.cjs owns profiles, closed-app checks, staged sidecars, backup/ownership records and exact restore. archive.cjs handles nested entries and CJS/ESM wrappers. Native filesystem access avoids Electron treating inspected ASAR files as virtual directories. The FACEIT preset keeps existing receipts/paths and known hashes.
 
-Management is independent of every plugin. Manager IPC authenticates its exact WebContents, frame and entry URL. Plugin panels cannot call manager operations directly.
+runtime/app-profile.cjs validates IDs, hashes and explicit origin/local-page policies. adapters/generic.cjs connects the existing manager to those pages, uses per-app data and defaults native mode off. Source integrations may use createPluginManager directly.
 
-## SDK
+The plugin registry/controller/broker layers remain app-independent. Sidecar apps metadata keeps app-specific packages out of unrelated bundled discovery and rejects incompatible direct imports. Generic profiles do not auto-enable bundled defaults.
 
-host.cjs binds explicit packages to eligible app windows. Its preload exposes named operations, not ipcRenderer. Brokers check capabilities; each package has a separate channel and persisted world ID.
+The trusted picker IPC authenticates exact WebContents/main frame/entry URL and exposes only discovery, selection and reviewed operations. Plugins cannot invoke it. SDK panels remain sandboxed, Node-disabled and capability-checked; isolated worlds share the app DOM. Native compatibility remains partial.
 
-page-api.cjs checks parent preferences, approved page state and navigation generation. Isolated worlds share the DOM: they do not protect page data from granted scripts or isolate CPU usage. HTML insertion is sanitized; approved bundled scripts have broader DOM/browser access without provided Node/Electron.
-
-## Native
-
-chrome-addons.cjs coordinates persistent sessions through Electron and the vendored compatibility library. It owns settings windows, supports selected tab/window operations and protects app windows from removal. chrome-permissions.cjs seeds compatibility reporting from approved grants.
-
-Chromium behavior, API compatibility and grant reporting are different layers. A positive contains result does not implement a missing API. MAIN-world hooks may need reload to remove.
-
-## Adapter/installer
-
-Adapters choose eligible windows/pages without plugin identities. The separate FACEIT installer verifies builds, stages owned runtime/bootstrap files, records ownership and preserves the original archive. See [patching](patching-faceit.md).
-
-The persistent ElectronBridge namespace is retained. Branding the project BridgeKit does not migrate storage or IPC.
+Bridge/ElectronBridge namespaces are retained where needed for existing data. Renaming or adding a general patcher does not migrate FACEIT's installation or settings.

@@ -1,3 +1,11 @@
+# BridgeKit 0.5 general patcher validation
+
+All 78 local Node tests passed. The standalone desktop IPC/worker/controller fixture passed nine checks. Generated CommonJS and ES-module apps passed 22 launch/plugin/isolation/update/exact-restore checks. Runtime/profile data were isolated; only synthetic fixture archives were patched. The real installed-app scan found 23 entries with explicit partial-coverage reporting. No real app was patched or reloaded by this work.
+
+See docs/testing.md and the locally generated patcher-ui-verification.json / patcher-verification.json receipts. The reports and screenshot are excluded from Git. A candidate label establishes static checks only, not universal vendor compatibility. FACEIT's existing installation format, preset hashes and data paths remain supported.
+
+---
+
 > Historical local integration notes. Third-party packages and machine-specific receipts are not distributed in Git. See [current compatibility](docs/supported-apps.md) and [testing](docs/testing.md).
 
 # Current follow-up: Bridge 0.4.1

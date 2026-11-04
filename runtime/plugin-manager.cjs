@@ -9,7 +9,7 @@ function createPluginManager(options){
   const electron=options.electron||require('electron');
   const {app,BrowserWindow,session,ipcMain,dialog,Tray,Menu}=electron;
   const directory=options.directory||path.join(app.getPath('appData'),'ElectronBridge',options.adapterId);
-  const registry=new Registry({directory,bundledDirectory:options.bundledDirectory||path.resolve(__dirname,'../plugins')});
+  const registry=new Registry({directory,appId:options.adapterId,enableBundledDefaults:options.enableBundledDefaults,bundledDirectory:options.bundledDirectory||path.resolve(__dirname,'../plugins')});
   const parents=new Map(),sdk=new Map(),reloadWindows=new Set(),observed=new WeakSet();
   const managerFile=path.resolve(__dirname,'manager/index.html'),managerURL=pathToFileURL(managerFile).href;
   let window=null,tray=null,quitting=false,lastParent=null,chrome;
@@ -32,7 +32,7 @@ function createPluginManager(options){
   };
   const controller=new PluginController({registry,runtime});
   const ready=app.whenReady().then(async()=>{
-    chrome=(options.chromeFactory||require('./chrome-addons.cjs').createChromeAddons)({registry});
+    chrome=options.nativeExtensions===false?require('./disabled-native.cjs').createDisabledNative():(options.chromeFactory||require('./chrome-addons.cjs').createChromeAddons)({registry});
     chrome.ensure(session.defaultSession);
     const result=await controller.initialize();
     ensureTray();return result;

@@ -16,3 +16,4 @@ verification-timeout.txt
 /repeek-analysis.json
 /repeek-manifest.json
 /plugins/faceit-forecast/
+/.bridgekit/

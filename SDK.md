@@ -122,3 +122,9 @@ Content-script manifest resource paths may begin with a slash; the Chrome-specif
 Compatibility permissions.getAll and contains derive API permissions and origins from approved registry grants, including content-script matches. Approved required-origin requests succeed without granting additional access. The broker continues denying unapproved origins and supports explicit approval of declared optional clipboardWrite only. Optional origin grants that are not already approved are not implemented.
 
 Known limits include the uploader's offscreen API and Repeek's background polyfill management error; successful installation and permission checks do not establish full feature compatibility.
+
+## App-independent profiles (0.5)
+
+The generic adapter uses runtime/app-profile.cjs for exact HTTP/custom-protocol origins and explicitly selected local HTML paths. Native Chrome mode is off by default, so ephemeral app sessions can use SDK plugins. Generic profiles isolate registry/settings by app ID under ElectronBridge/apps; the FACEIT preset keeps its original ElectronBridge/faceit directory.
+
+Packages may declare an optional apps array in bridge-plugin.json. App-targeted bundles are skipped for unrelated adapters and explicit incompatible imports are rejected. Generic profiles do not automatically activate bundled defaults. Closing/disable/cleanup rules remain unchanged.

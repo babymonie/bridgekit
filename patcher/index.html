@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none';script-src 'self';style-src 'self';img-src 'self';connect-src 'none';object-src 'none';base-uri 'none';form-action 'none'"><title>BridgeKit · App patcher</title><link rel="stylesheet" href="patcher.css"><script defer src="patcher.js"></script></head>
+<body>
+  <header><div class="brand"><span class="mark" aria-hidden="true">b.</span><strong>BRIDGEKIT</strong><span>APP PATCHER</span></div><span class="local-label">LOCAL · REVERSIBLE · PERMISSION-SCOPED</span></header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">YOUR APPS. MORE POSSIBILITIES.</p><h1>Choose an app to extend.</h1><p>Find Electron apps, review compatibility, then add BridgeKit.</p></div><button id="scan" class="primary">Scan installed apps</button></section>
+    <div class="scan-state"><p id="notice" role="status" aria-live="polite">Ready to scan. App files are inspected without launching or modifying them.</p><button id="cancel" hidden>Stop scan</button></div>
+    <progress id="progress" aria-label="Scanning installed apps" hidden></progress>
+    <div class="workspace">
+      <section class="catalog" aria-label="Detected apps"><div class="catalog-tools"><label for="search">Find an app</label><input id="search" type="search" placeholder="Search name or install path"><label class="filter"><input id="ready-only" type="checkbox"> Show candidates and installed apps only</label><div class="browse"><button id="add-folder">Add folder…</button><button id="add-file">Choose app file…</button></div></div><p id="count" class="meta">No apps scanned</p><ul id="apps"></ul><p id="empty">Scan installed apps or add a portable app’s folder.</p></section>
+      <section id="detail" class="detail" aria-label="Selected app"><div id="no-selection"><span class="detail-symbol" aria-hidden="true">↗</span><h2>Start with an app.</h2><p>Select a result to see checks, page access and patch controls.</p><p class="meta">Electron detection is a starting point. Some builds use integrity checks or unsupported layouts.</p></div><div id="selected" hidden>
+        <div class="detail-heading"><div><p id="app-kind" class="eyebrow"></p><h2 id="app-name"></h2><p id="app-version" class="meta"></p></div><span id="app-status" class="badge"></span></div>
+        <dl><dt>Location</dt><dd id="app-path"></dd><dt>Entry</dt><dd id="app-entry"></dd><dt>Executable</dt><dd id="app-exe"></dd></dl>
+        <button id="choose-exe" hidden>Choose executable…</button>
+        <ul id="blockers" class="blockers"></ul>
+        <p id="preset-note" class="callout" hidden>FACEIT uses its tested preset. Existing plugins, data paths and restore workflow are preserved.</p>
+        <form id="configuration" novalidate>
+          <h3>App access</h3><p class="meta">Choose exactly where plugins may run. No app-page access is inferred automatically.</p>
+          <label for="app-id">App ID</label><input id="app-id" name="appId" required maxlength="48" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" pattern="[a-z][a-z0-9-]{1,47}" aria-describedby="id-help"><p id="id-help" class="hint">A unique, stable name for this app’s saved plugin settings.</p>
+          <label for="origins">Web or custom-protocol origins</label><textarea id="origins" name="origins" autocorrect="off" autocapitalize="off" spellcheck="false" rows="2" placeholder="https://app.example.com&#10;app://desktop" aria-describedby="origin-help"></textarea><p id="origin-help" class="hint">One exact origin per line. No wildcards or page paths.</p>
+          <fieldset id="local-pages"><legend>Local pages inside the app</legend><div id="page-options"></div><p id="no-pages" class="hint">No packed HTML pages found.</p></fieldset>
+          <label class="native"><input id="native" type="checkbox"> Enable partial Chrome extension compatibility</label><p class="hint">Off by default. SDK plugins work without native Chrome APIs.</p>
+        </form>
+        <p class="scope-note">The next step shows the exact archive, backup and permissions for review. Fully exit the app first. A passed inspection does not guarantee every plugin will work.</p>
+        <div class="actions"><button id="patch" class="primary">Review patch…</button><button id="update" hidden>Update BridgeKit…</button><button id="restore" hidden>Restore original app…</button></div>
+      </div></section>
+    </div>
+    <details class="coverage"><summary>Scan coverage and notes</summary><p id="coverage">Checks standard install locations and Windows install records. Portable apps and custom locations may need Add folder. No whole-drive or browser-profile scan is performed.</p><ul id="issues"></ul></details>
+  </main>
+</body></html>

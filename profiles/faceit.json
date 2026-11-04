@@ -1,0 +1,12 @@
+{
+  "id": "faceit",
+  "name": "FACEIT",
+  "integration": "legacy-faceit",
+  "platform": "win32",
+  "defaultRoot": {"environment": "LOCALAPPDATA", "directory": "FACEIT"},
+  "origins": ["https://www.faceit.com"],
+  "builds": {
+    "2.10.0": "9978364f76a77da79d632fd90511a54f25d5b3dcf811d32766a0327dfd2d060c",
+    "2.11.0": "e9db0b789b237733592698166c1355966a15044acf78464b771fb4695f787c12"
+  }
+}

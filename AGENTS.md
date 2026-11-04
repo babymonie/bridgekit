@@ -2,7 +2,7 @@
 
 ## Scope
 
-BridgeKit is a permission-scoped Electron framework prototype. UI/storage retain Bridge/ElectronBridge names for compatibility. Source version: 0.4.1. FACEIT is the only packaged-app adapter. Do not claim universal patchability or complete Chrome emulation.
+BridgeKit is a permission-scoped Electron framework prototype. UI/storage retain Bridge/ElectronBridge names for compatibility. Source version: 0.5.0. Generic profiles support compatible packed Electron apps; FACEIT remains a tested legacy preset. Do not claim universal patchability or complete Chrome emulation.
 
 Read README.md, docs/architecture.md and task-relevant guides. Use work/ for temporary assets; do not commit generated receipts/screenshots. The surrounding workspace may require deliverable archives under outputs/.
 
@@ -49,3 +49,13 @@ Ad Cleaner uses panel/page.styles only: cosmetic filtering, not request blocking
 Do not commit copied third-party extensions, app archives, browser profiles, private logs, credentials, machine paths or user screenshots. Ignore root node_modules only; vendor nested dependencies are required. Preserve licenses and update THIRD_PARTY_NOTICES.md.
 
 Keep README, SDK and docs current. Supported means exact-build evidence, not Electron use alone. Requests use issue forms; private issues need collaborator access.
+
+## General app patcher (0.5)
+
+patcher/ is the standalone trusted desktop app picker, separate from each patched app's plugin manager. Scanner results are candidates, not vendor compatibility guarantees. The worker checks standard install roots/records, probes known layouts before bounded breadth-first search, skips profile/cache/link locations, and reports scan limits/errors. Never launch detected apps while scanning.
+
+tools/app-inspection.cjs reads hashes/main entry/fuses; tools/patch-engine.cjs owns profile plans, stopped-app checks, locks, backups, staged sidecars, inventory and restore. tools/native-fs.cjs is required for raw ASAR operations inside Electron; virtualized node:fs must not treat a target archive as an app directory. @electron/fuses is read-only here: never call flipFuses. Unknown/protected states block patching.
+
+runtime/app-profile.cjs scopes exact HTTP/custom origins and selected local pages. adapters/generic.cjs defaults native Chrome mode and bundled auto-enable off, with data under ElectronBridge/apps/<id>. Explicit apps metadata keeps FACEIT-specific bundles out of other apps. FACEIT preset preserves its existing paths/receipts/data and does not silently migrate installs.
+
+Use npm run picker:verify for desktop IPC/scan/review/mutation fixtures and npm run patcher:verify for generated CJS/ESM launch/plugin/update/restore tests. They must never patch installed user apps. Close the standalone picker first for launch tests: a shared development Electron executable conservatively counts as running. GUI app startup is npm start / Start-BridgeKit.cmd; npm run demo remains the offline plugin bench.

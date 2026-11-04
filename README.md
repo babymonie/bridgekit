@@ -1,97 +1,101 @@
 # BridgeKit
 
-**Permission-scoped plugins for Electron apps.**
+**Find Electron apps. Add a controlled plugin system. Restore the original when you want.**
 
-BridgeKit provides a plugin manager, an SDK for extending app pages, and a partial Chrome Manifest V3 compatibility layer. FACEIT is the first tested adapter. This is an experimental framework with a working local manager; other apps need a reviewed adapter.
+BridgeKit is an Electron app patcher and permission-scoped plugin framework. Its desktop picker scans installed apps, explains compatibility checks, and guides you through page access and reversible patching. FACEIT remains a tested preset; ordinary compatible ASAR apps use data profiles without writing an app-specific adapter.
 
-[Get started](docs/getting-started.md) · [Patch FACEIT](docs/patching-faceit.md) · [Supported apps](docs/supported-apps.md) · [Build a plugin](docs/plugins.md) · [Request an app](https://github.com/babymonie/bridgekit/issues/new?template=app-request.yml)
+[App scanner](docs/app-scanner.md) · [General patching](docs/patching-electron.md) · [FACEIT preset](docs/patching-faceit.md) · [Build plugins](docs/plugins.md) · [Known limits](docs/supported-apps.md)
 
-## Features
+## Start here
 
-- Discover and install local plugin folders or ZIPs.
-- List, search, enable, disable, configure and uninstall plugins.
-- Persist approved permissions, enabled states and SDK settings.
-- Extend supported pages with approved HTML, CSS and client-side JavaScript.
-- Keep Node.js, process/filesystem access and raw Electron APIs out of plugin renderers.
-- Reopen the independent manager with **Ctrl+Shift+B** or its tray icon. The UI currently says **Bridge**.
-- Patch known FACEIT archives reversibly, retaining an exact original backup.
-
-The native Chrome layer implements selected APIs. Installing an extension or reporting permissions correctly does not prove every feature works. See [compatibility](docs/supported-apps.md#plugin-compatibility).
-
-## Try locally
-
-The documented FACEIT workflow requires Windows and Node.js 22+.
+Requires Node.js 22+ and npm. The repository is private.
 
 ```powershell
 git clone https://github.com/babymonie/bridgekit.git
 cd bridgekit
 npm ci
-npm test
-npm run demo
+npm start
 ```
 
-This repository is private: GitHub access is needed to clone it or open issues. The demo uses a separate offline bench/profile and does not patch FACEIT. Bundled examples start disabled.
+Or open **Start-BridgeKit.cmd** after installing dependencies.
 
-## Install into FACEIT
+The picker scans standard installation locations and Windows install records. Select a result, choose exact app origins or local HTML pages, and use **Review patch**. A final dialog shows the archive, backup, runtime and page access before changes. Fully exit the target app first.
 
-Fully exit FACEIT, including its tray process. From the project directory:
+- Search by name or location; filter to candidates and already-patched apps.
+- Use **Add folder** / **Choose app file** for portable or custom installs.
+- Read blockers for integrity protection, ambiguous executables or unsupported layouts.
+- Update BridgeKit or restore the original from the same app detail panel.
+- Scanning is read-only and never launches detected apps.
+
+**Candidate means file/fuse checks passed, not that every app or plugin feature has been verified.** Scan limits, inaccessible directories and custom locations are reported; this is not a promise to discover or patch every Electron app.
+
+## What can be patched?
+
+The general engine handles packed JavaScript entry points in standard ASAR layouts, including nested CommonJS and ES modules. Profiles pin the archive and executable hashes. Windows/Linux are the supported generic process-check platforms; macOS bundle patching is inspection-only.
+
+Embedded ASAR integrity protection is detected and refused without changing fuses. Unpacked apps, oversized archives and unsupported entries are reported. Apps with incompatible window preferences or custom startup assumptions may need source integration or a dedicated adapter.
+
+The Windows FACEIT 2.10.0/2.11.0 hash-checked preset and existing installation/data format are retained. These are inspected historical builds, not a claim about the latest release. See the [support matrix](docs/supported-apps.md).
+
+## Command-line workflow
 
 ```powershell
-npm run faceit:status
-npm run faceit:install
+npm run bridgekit
+npm run bridgekit -- inspect "C:\Apps\Example"
+npm run bridgekit -- setup "C:\Apps\Example" --id example --origin app://desktop
+npm run bridgekit -- plan ".bridgekit/profiles/example.json"
+npm run bridgekit -- patch ".bridgekit/profiles/example.json"
+npm run bridgekit -- restore ".bridgekit/profiles/example.json"
 ```
 
-Open FACEIT normally, then press **Ctrl+Shift+B**. For an existing installation use `npm run faceit:update` while closed. To restore the original archive use `npm run faceit:uninstall` while closed.
+For a local renderer use `--local-page renderer/index.html` instead of a web origin. Setup saves a reviewed profile; it does not silently patch the app. Paths may point to an install directory, executable or exact app.asar. Multiple versions require explicit selection.
 
-Only the explicitly verified Windows FACEIT **2.10.0** and **2.11.0** archive hashes are accepted. The 2.11.0 integration was tested locally; 2.10.0 has historical verification. This is not a claim about the latest release or a recommendation to downgrade. Unknown builds are refused. Read [patching and rollback](docs/patching-faceit.md).
+FACEIT remains available through the same CLI:
 
-## Install a plugin
+```powershell
+npm run bridgekit -- patch --preset faceit
+npm run bridgekit -- update --preset faceit
+npm run bridgekit -- restore --preset faceit
+```
 
-1. Open Bridge and choose **Install folder** or **Install ZIP**.
-2. Select a package containing manifest.json and review requested access.
-3. Enable the plugin. New imports are initially disabled.
-4. Use **Settings** to open its page; disable it to stop its host and run cleanup.
+Existing faceit:* commands and .cmd helpers still work.
 
-The manager indicates reload requirements. Finish active work/matches before reloading. Closing settings/manager only hides UI; it does not disable a plugin.
+## Plugins inside the patched app
 
-| Included example | Demonstrates | Default |
-| --- | --- | --- |
-| [Hello panel](plugins/hello-panel) | Saved settings, HTML, CSS and page code | Disabled |
-| [FACEIT Ad Cleaner](plugins/faceit-ad-cleaner) | Style-only removal of visible ads and their space | Disabled |
+Open the app normally and press **Ctrl+Shift+B** or use its Bridge tray icon.
 
-FORECAST, Repeek, the Leetify uploader, browser profiles and app archives are **not distributed here**. Optional diagnostics accept user-supplied packages. See [third-party notices](THIRD_PARTY_NOTICES.md).
+Install folders/ZIPs, review permissions, then enable packages in the independent manager. Close hides UI; disable stops a plugin and runs cleanup. Some script changes need an explicit page reload after active work is finished.
+
+New generic profiles default to **SDK plugins only** and never automatically enable bundled packages. Partial native Chrome compatibility is an explicit profile option. SDK panels keep sandboxing, context isolation and Node disabled; privileged operations use a sender-authenticated permission broker.
+
+| Example | Scope |
+| --- | --- |
+| [Hello panel](plugins/hello-panel) | General SDK example: settings, HTML/CSS/scripts |
+| [FACEIT Ad Cleaner](plugins/faceit-ad-cleaner) | FACEIT-targeted cosmetic style plugin; not seeded into unrelated apps |
+
+Packages can declare app targets in bridge-plugin.json. Original third-party extensions, app archives and browser profiles are not distributed. See [notices](THIRD_PARTY_NOTICES.md).
 
 ## Documentation
 
-| Guide | Contents |
-| --- | --- |
-| [Getting started](docs/getting-started.md) | Setup, demo, everyday controls |
-| [Patching FACEIT](docs/patching-faceit.md) | Install, update, verify, rollback and data |
-| [Supported apps](docs/supported-apps.md) | Tested builds, unsupported apps, Chrome limits |
-| [Plugins](docs/plugins.md) and [SDK](SDK.md) | Packages, permissions, page APIs and lifecycle |
-| [Architecture](docs/architecture.md) | Registry, manager, brokers and native layer |
-| [Adding an adapter](docs/adding-an-adapter.md) | Source integration and packaged-build qualification |
-| [Testing](docs/testing.md) | Clean-clone tests and evidence |
-| [Troubleshooting](docs/troubleshooting.md) | Imports, permissions, updates and known gaps |
-| [Roadmap](docs/roadmap.md) | Current scope and remaining work |
-| [Contact](CONTACT.md) | App/plugin requests and maintainer |
-
-## Security
-
-SDK panels use sandboxing, context isolation and disabled Node integration. Privileged calls use a sender-authenticated permission broker. Page scripts have separate isolated worlds, but approved scripts can read/change browser-visible app data. Native compatibility does not reproduce every Chrome security/permission mechanism.
-
-BridgeKit does not bypass integrity fuses, modify anti-cheat, import authentication databases or automate matches. Disabling runs cleanup; arbitrary page edits and MAIN-world hooks may need reload. See [security model](docs/security.md).
+- [App scanner and review flow](docs/app-scanner.md)
+- [General patching, profiles and rollback](docs/patching-electron.md)
+- [FACEIT preset](docs/patching-faceit.md)
+- [Support/compatibility matrix](docs/supported-apps.md)
+- [Plugins](docs/plugins.md) and [SDK reference](SDK.md)
+- [Architecture](docs/architecture.md) and [source integration](docs/adding-an-adapter.md)
+- [Testing](docs/testing.md), [troubleshooting](docs/troubleshooting.md) and [roadmap](docs/roadmap.md)
+- [Contact/app requests](CONTACT.md), [contributing](CONTRIBUTING.md) and [agent instructions](AGENTS.md)
 
 ## Development
 
 ```powershell
 npm test
+npm run picker:verify
+npm run patcher:verify
 npm run manager:verify
-npm run ad-cleaner:verify
+npm run demo
 ```
 
-The first command runs Node/JSDOM checks. The others open isolated Electron fixtures. Optional checks explain skips when user-owned packages/app archives are absent. CI runs the clean-clone Node suite; installed-runtime/live evidence is separate. See [testing](docs/testing.md), [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md).
+Node tests cover scanning, profiles, ownership/rollback, CLI and UI behavior. picker:verify tests the desktop broker/controller against generated fixtures. patcher:verify patches and launches independent CJS/ESM fixtures, tests plugins, updates and restores them. Neither modifies installed user apps. Optional proprietary fixtures explain skips in clean clones.
 
-## License
-
-Original source is [MIT licensed](LICENSE). Dependencies retain their notices. Imported extensions/app assets are not covered. BridgeKit is independent and not endorsed by FACEIT or other listed vendors.
+Original source is [MIT licensed](LICENSE). BridgeKit is independent of the app vendors. It does not weaken integrity fuses/signatures, alter executables/anti-cheat, import authentication databases, or automate account/match actions.

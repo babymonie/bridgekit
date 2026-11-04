@@ -32,6 +32,8 @@ function inspectPackage(directory) {
   const root = fs.realpathSync(directory), files = tree(root);
   const manifest = readJSON(path.join(root, 'manifest.json'));
   const sidecar = fs.existsSync(path.join(root,'bridge-plugin.json')) ? readJSON(path.join(root,'bridge-plugin.json')) : {};
+  const apps = sidecar.apps || [];
+  if(!Array.isArray(apps)||apps.some(app=>!validId(app)))throw Error('Invalid plugin app targets');
   let kind, id, permissions, optionalPermissions = [], settingsEntry, nativeIdentity = null;
   if (manifest.apiVersion === 1) {
     validateManifest(manifest); kind = 'sdk'; id = manifest.id; permissions = [...manifest.permissions]; settingsEntry = manifest.entry;
@@ -59,10 +61,12 @@ function inspectPackage(directory) {
   if(sidecar.settings?.css){entryPath(root,sidecar.settings.css);settingsCss=sidecar.settings.css;}
   const hash = crypto.createHash('sha256');
   for(const file of files){hash.update(file.replaceAll(path.sep,'/'));hash.update(fs.readFileSync(path.join(root,file)));}
-  return { id, name: manifest.name, version: manifest.version, kind, nativeIdentity, permissions, optionalPermissions, settingsEntry, settingsCss, manifest, directory: root, fingerprint: hash.digest('hex'), files, defaultEnabled: sidecar.defaultEnabled===true };
+  return { id, name: manifest.name, version: manifest.version, kind, nativeIdentity, permissions, optionalPermissions, settingsEntry, settingsCss, apps, manifest, directory: root, fingerprint: hash.digest('hex'), files, defaultEnabled: sidecar.defaultEnabled===true };
 }
 class Registry {
-  constructor({ directory, bundledDirectory }) {
+  constructor({ directory, bundledDirectory, appId, enableBundledDefaults = true }) {
+    this.appId=appId;
+    this.enableBundledDefaults=enableBundledDefaults;
     this.directory = path.resolve(directory); this.packages = path.join(this.directory,'plugins'); this.file = path.join(this.directory,'registry.json'); this.bundledDirectory = bundledDirectory;
     fs.mkdirSync(this.packages,{recursive:true}); this.discoveryErrors=[];
     try{this.state=readJSON(this.file);if(this.state.schema!==1||!this.state.plugins||!Array.isArray(this.state.removedBundles))throw Error('Invalid registry');}
@@ -71,9 +75,10 @@ class Registry {
   save(){fs.writeFileSync(this.file+'.tmp',JSON.stringify(this.state,null,2),{mode:0o600});fs.renameSync(this.file+'.tmp',this.file);}
   get(id){if(!validId(id)||!Object.hasOwn(this.state.plugins,id))throw Error('Plugin not found');return this.state.plugins[id];}
   list(){return Object.values(this.state.plugins).map(entry=>({...entry,permissions:[...entry.permissions],grants:[...entry.grants]}));}
-  package(id){const entry=this.get(id),directory=path.join(this.packages,id);if(!inside(fs.realpathSync(this.packages),fs.realpathSync(directory)))throw Error('Plugin path escapes registry');const info=inspectPackage(directory);if(info.id!==id||info.fingerprint!==entry.fingerprint)throw Error('Package files changed; reinstall to review the updated package');return info;}
+  package(id){const entry=this.get(id),directory=path.join(this.packages,id);if(!inside(fs.realpathSync(this.packages),fs.realpathSync(directory)))throw Error('Plugin path escapes registry');const info=inspectPackage(directory);if(this.appId&&info.apps.length&&!info.apps.includes(this.appId))throw Error('Plugin does not target this app');if(info.id!==id||info.fingerprint!==entry.fingerprint)throw Error('Package files changed; reinstall to review the updated package');return info;}
   register(source,{grants=[],enabled=false,bundled=false}={}) {
     const inspected=inspectPackage(source);
+    if(this.appId&&inspected.apps.length&&!inspected.apps.includes(this.appId))throw Error(`Plugin targets ${inspected.apps.join(', ')}, not ${this.appId}`);
     if(Object.hasOwn(this.state.plugins,inspected.id))throw Error('A plugin with this ID is already installed');
     if(inspected.nativeIdentity&&this.list().some(entry=>entry.nativeIdentity===inspected.nativeIdentity))throw Error('This Chrome extension identity is already installed');
     if(inspected.permissions.some(p=>!grants.includes(p))&&enabled)throw Error('Permissions must be approved before enabling');
@@ -104,7 +109,7 @@ class Registry {
     const scan=(root,bundled)=>{if(!root||!fs.existsSync(root))return;for(const item of fs.readdirSync(root,{withFileTypes:true})){
       if(!item.isDirectory()||item.name.startsWith('.'))continue;
       const folder=path.join(root,item.name);if(!fs.existsSync(path.join(folder,'manifest.json')))continue;
-      try{const info=inspectPackage(folder);if(Object.hasOwn(this.state.plugins,info.id)||(bundled&&this.state.removedBundles.includes(info.id)))continue;this.register(folder,{bundled,enabled:bundled&&info.defaultEnabled,grants:bundled&&info.defaultEnabled?info.permissions:[]});}
+      try{const info=inspectPackage(folder);if(bundled&&this.appId&&info.apps.length&&!info.apps.includes(this.appId))continue;if(Object.hasOwn(this.state.plugins,info.id)||(bundled&&this.state.removedBundles.includes(info.id)))continue;const enabled=bundled&&this.enableBundledDefaults&&info.defaultEnabled;this.register(folder,{bundled,enabled,grants:enabled?info.permissions:[]});}
       catch(error){this.discoveryErrors.push({folder:item.name,error:error.message});}
     }};
     scan(this.packages,false);scan(this.bundledDirectory,true);

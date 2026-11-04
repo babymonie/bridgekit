@@ -1,0 +1,23 @@
+'use strict';
+const {app,BrowserWindow,ipcMain,dialog,session}=require('electron');
+const path=require('node:path'),{pathToFileURL}=require('node:url');
+const {PatcherController}=require('./controller.cjs');
+const {bindPatcherIPC}=require('./ipc.cjs');
+app.setName('BridgeKit');
+app.setPath('userData',path.join(app.getPath('appData'),'ElectronBridge','patcher'));
+const CHANNEL='bridgekit:patcher:v1',file=path.join(__dirname,'index.html'),entry=pathToFileURL(file).href;
+let window,controller,unbind;
+app.whenReady().then(async()=>{
+  console.log('[BridgeKit] Preparing app picker');
+  const ses=session.fromPartition('bridgekit-patcher-ui');ses.setPermissionRequestHandler((_wc,_permission,cb)=>cb(false));ses.setPermissionCheckHandler(()=>false);
+  const prefix=pathToFileURL(__dirname+path.sep).href;ses.webRequest.onBeforeRequest((details,cb)=>cb({cancel:!details.url.startsWith(prefix)}));
+  window=new BrowserWindow({width:1180,height:800,minWidth:760,minHeight:560,title:'BridgeKit · App patcher',autoHideMenuBar:true,show:false,backgroundColor:'#141619',webPreferences:{session:ses,preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webviewTag:false,webSecurity:true}});
+  window.webContents.setWindowOpenHandler(()=>({action:'deny'}));window.webContents.on('will-navigate',event=>event.preventDefault());
+  controller=new PatcherController({directory:path.join(app.getPath('userData'),'profiles'),dialog,getWindow:()=>window,notify:update=>{if(!window.isDestroyed())window.webContents.send('bridgekit:scan-progress',update);}});
+  unbind=bindPatcherIPC({ipcMain,window,controller});
+  window.webContents.on('did-fail-load',(_event,code,description)=>console.error('[BridgeKit] App picker load:',code,description));
+  console.log('[BridgeKit] Loading app picker');
+  await window.loadURL(entry);window.show();console.log('[BridgeKit] App picker ready');
+}).catch(error=>{console.error(error);app.exit(1);});
+app.on('window-all-closed',()=>app.quit());
+app.on('before-quit',()=>{controller?.cancel().catch(()=>{});unbind?.();});

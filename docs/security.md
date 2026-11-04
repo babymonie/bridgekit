@@ -21,3 +21,9 @@ The MV3 layer does not reproduce every Chrome permission mechanism. Approved gra
 No browser cookies, credentials/authentication databases are imported. Cloud sync is not implemented. Ad Cleaner changes visibility, not network traffic or subscription access.
 
 Report issues through [SECURITY.md](../SECURITY.md) using minimal synthetic data.
+
+## Desktop app patcher
+
+The standalone picker authenticates its own renderer/frame/entry URL and exposes only named selection/review operations. Scanner workers read install records and file/fuse metadata without launching candidates. App mutations require explicit review, stopped-app and pinned-hash checks. ASAR integrity protection is detected and refused; no fuse or executable is rewritten.
+
+Raw filesystem operations use original-fs inside Electron to avoid ASAR virtualization. Backups and sidecar inventories are checked before update/restore. Generic profile policies do not infer broad origin/file access. A structural candidate may still have unsupported startup/runtime behavior; verify with synthetic fixtures before real account use.

@@ -68,3 +68,9 @@ The compatibility prefix is added to isolated scripts without changing original 
 getAll/contains reflect approved API/site grants, including content-script sites and saved optional grants. Already-approved origin requests succeed; unapproved origins are denied. Declared optional clipboardWrite can prompt; general optional-host granting is not implemented.
 
 Consult [compatibility](supported-apps.md#plugin-compatibility). Import can succeed while a required runtime API is unavailable.
+
+## Per-app targets and generic profiles
+
+A bridge-plugin.json sidecar may declare `apps: ["faceit"]`. Non-empty targets restrict bundled discovery and explicit imports to matching app IDs; an omitted/empty list is app-independent. FACEIT Ad Cleaner declares its target. Do not put app-specific selectors in generic hosts.
+
+Generic profiles isolate data under ElectronBridge/apps/<appId>, never auto-enable bundled defaults, and default native Chrome compatibility off. Use a stable unique app ID and SDK-only capabilities where possible. A Chrome package may be listed but fail activation with a clear error when native mode is off.

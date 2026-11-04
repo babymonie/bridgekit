@@ -41,3 +41,15 @@ Do not edit managed snapshots. Disable/uninstall and install/review revised sour
 Clean clones lack optional packages/archives. GUI diagnostics need a desktop and launch authorization; screenshot capture can fail even with passing geometry assertions. Keep evidence types separate. See [testing](testing.md).
 
 Use the [bug form](https://github.com/babymonie/bridgekit/issues/new?template=bug-report.yml) with versions, reproduction and sanitized errors.
+
+## Scanner misses an app or reports partial coverage
+
+The search is bounded and skips caches, profiles and links. Add the specific installation folder or executable. Multiple versions are separate entries. Read the scan notes for permission errors/limits. Unpacked resources/app layouts appear blocked and need source integration.
+
+## Candidate cannot be patched
+
+Candidate describes static checks, not a running-app or runtime guarantee. Fully exit the target. Select the correct executable if ambiguous; a changed archive/binary needs a newly reviewed profile. Integrity protection, unknown fuse state, unsupported main entries and macOS bundles are refused.
+
+## Generic plugin has no page access
+
+Select exact app origins (including custom protocols if used) or the correct local HTML page. The app page must keep Node disabled/context isolation enabled. Native mode is optional and off by default. The picker only installs the host; it does not grant every plugin access or auto-enable bundles.

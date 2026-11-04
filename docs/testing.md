@@ -1,5 +1,25 @@
 # Testing and evidence
 
+## General patcher and picker (0.5)
+
+```powershell
+npm ci
+npm test
+npm run picker:verify
+npm run patcher:verify
+```
+
+The Node suite now covers archive entry resolution, CJS/ESM preservation, profile scopes, read-only app discovery, fuse blockers, running/changed-app refusal, locks, ownership, backup/update/restore, CLI lifecycle, desktop controller and app-picker UI in addition to the existing plugin suites. CI runs on Windows and Linux. Optional proprietary packages and original vendor archives explain skips in a clean clone.
+
+picker:verify launches a separate Electron desktop fixture. It exercises the real preload/IPC/controller and worker scanner, patches/updates/restores only generated apps, verifies exact backups, checks Node isolation, and rejects an unrelated renderer. It does not mutate installed user apps.
+
+patcher:verify creates unrelated CommonJS and ES-module ASAR apps, patches them through the general engine, launches their original entries, exercises SDK plugins on explicitly scoped local pages with ephemeral sessions, updates the sidecar and restores exact original archive bytes. Close the app picker first: sharing the development Electron executable conservatively counts as running.
+
+Local 0.5 evidence: all 78 Node tests passed with local optional fixtures present; nine desktop picker checks passed; 22 generated-app launch/plugin/update/restore checks passed across CJS/ESM. Real machine discovery found 23 entries in a bounded partial scan. Those entries are static candidates/blocked results, not 23 verified vendor integrations. No detected real app was patched by these tests.
+
+Receipts and screenshots are generated locally beside package.json and Git-ignored because they may contain paths/logs. Check freshness, actual runtime, skipped phases and success. Node/JSDOM, offline desktop fixtures, installed vendor runtime and live behavior are different evidence levels.
+
+
 ## Clean clone
 
 ```powershell
