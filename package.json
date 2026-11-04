@@ -26,7 +26,8 @@
     "start": "node tools/start-patcher.cjs",
     "patcher": "node tools/start-patcher.cjs",
     "patcher:verify": "node tools/verify-patcher.cjs",
-    "picker:verify": "node tools/verify-picker.cjs"
+    "picker:verify": "node tools/verify-picker.cjs",
+    "wand:verify": "node tools/verify-wand-plugins.cjs"
   },
   "engines": {
     "node": ">=22"

@@ -1,0 +1,17 @@
+'use strict';
+const $=id=>document.getElementById(id),store=window.bridge.storage;
+let entries=[],selected='',busy=false,dirty=false,deleteArmed=false;
+function status(message){$('status').textContent=message;}
+function controls(){for(const id of ['games','capture','save','new','game','notes'])$(id).disabled=busy;$('delete').disabled=busy||!selected;}
+function options(){const first=document.createElement('option');first.value='';first.textContent='New game…';$('games').replaceChildren(first);for(const entry of entries){const option=document.createElement('option');option.value=entry.id;option.textContent=entry.title;$('games').append(option);}$('games').value=selected;controls();}
+function disarm(){deleteArmed=false;$('delete').textContent='Delete game';}
+async function run(fn){if(busy)return;busy=true;controls();try{await fn();}catch(error){status('Could not complete: '+error.message);}finally{busy=false;controls();}}
+function decodeIndex(raw){if(raw===null)return[];const value=JSON.parse(raw);if(!Array.isArray(value)||value.length>8||value.some(e=>!/^g[a-z0-9-]+$/.test(e.id)||typeof e.title!=='string'||e.title.length>80))throw Error('Invalid notebook index');return value;}
+async function open(id){const raw=id?await store.get('note.'+id):null;const note=raw?JSON.parse(raw):{title:'',text:''};if(typeof note.title!=='string'||typeof note.text!=='string')throw Error('Invalid saved note');selected=id;$('game').value=note.title;$('notes').value=note.text;dirty=false;disarm();options();status(id?'Loaded from this device.':'Ready for a new game.');}
+$('editor').addEventListener('submit',event=>{event.preventDefault();run(async()=>{const title=$('game').value.trim();if(!title){status('Enter a game name.');return;}if(!selected&&entries.length>=8){status('Notebook is full. Delete a saved game first.');return;}const id=selected||('g'+crypto.randomUUID());const record=JSON.stringify({title,text:$('notes').value});if(record.length>4096)throw Error('Note exceeds the storage limit');const next=entries.filter(e=>e.id!==id);next.push({id,title});await store.set('note.'+id,record);await store.set('notebookIndex',JSON.stringify(next));entries=next;selected=id;dirty=false;disarm();options();status('Saved on this device.');});});
+$('games').addEventListener('change',()=>{const id=$('games').value;if(dirty){$('games').value=selected;status('Save your changes before switching games.');return;}run(()=>open(id));});
+$('new').addEventListener('click',()=>{if(dirty){status('Save your changes before opening a new game.');return;}run(()=>open(''));});
+for(const id of ['game','notes'])$(id).addEventListener('input',()=>{dirty=true;disarm();status('Unsaved changes.');});
+$('capture').addEventListener('click',()=>run(async()=>{const page=await window.bridge.page.info();if(!page.title?.trim()){status('No page title available. Enter a game name manually.');return;}$('game').value=page.title.trim().slice(0,80);dirty=true;disarm();status('Page title copied. Check the name, then save.');}));
+$('delete').addEventListener('click',()=>{if(!deleteArmed){deleteArmed=true;$('delete').textContent='Confirm delete';status('Click Confirm delete again to remove this game and its notes.');return;}run(async()=>{const next=entries.filter(e=>e.id!==selected);await store.set('notebookIndex',JSON.stringify(next));entries=next;await store.set('note.'+selected,null);await open('');status('Game removed.');});});
+run(async()=>{entries=decodeIndex(await store.get('notebookIndex'));await open(entries[0]?.id||'');});

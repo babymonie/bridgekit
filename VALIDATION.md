@@ -44,3 +44,7 @@ This plugin requests panel and page.styles only. It is packaged separately and d
 ## Reviewed Windows integrity preparation (2026-11-04)
 
 84 local Node tests passed. The actual Electron picker fixture passed 13 checks, including native-warning cancellation, integrity-only preparation without archive changes and byte-identical executable restoration. No installed app was changed by these feature tests. The warning defaults to Cancel. Normal patch review remains separate.
+
+## Wand plugin packages (2026-11-04)
+
+Six focused Node/JSDOM checks and ten actual Electron manager checks passed for the standalone SDK notebook and native MV3 planner. Fixture checks include local persistence after disable/re-enable, panel disposal, SDK/native Node isolation, title capture and full-height native settings. This is offline fixture evidence, not live Wand or Chrome-browser validation.

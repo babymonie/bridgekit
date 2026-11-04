@@ -99,3 +99,7 @@ npm run demo
 Node tests cover scanning, profiles, ownership/rollback, CLI and UI behavior. picker:verify tests the desktop broker/controller against generated fixtures. patcher:verify patches and launches independent CJS/ESM fixtures, tests plugins, updates and restores them. Neither modifies installed user apps. Optional proprietary fixtures explain skips in clean clones.
 
 Original source is [MIT licensed](LICENSE). BridgeKit is independent of the app vendors. The optional reviewed Windows integrity preparation changes the executable and invalidates its signature. BridgeKit does not alter anti-cheat, import authentication databases, or automate account/match actions.
+
+## Wand companion plugins
+
+[Game Notebook and Session Planner](docs/wand-plugins.md) are independent, disabled-by-default packages for the `wand` profile. The SDK notebook saves per-game notes; the Chrome MV3 planner saves session goals and a break deadline. Native mode is required only for the planner. Install their individual folders or ZIPs through Wand’s Bridge manager.

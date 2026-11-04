@@ -1,0 +1,7 @@
+{
+  "id": "wand-game-notebook",
+  "apps": [
+    "wand"
+  ],
+  "defaultEnabled": false
+}

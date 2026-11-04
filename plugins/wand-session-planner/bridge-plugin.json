@@ -1,0 +1,7 @@
+{
+  "id": "wand-session-planner",
+  "apps": [
+    "wand"
+  ],
+  "defaultEnabled": false
+}

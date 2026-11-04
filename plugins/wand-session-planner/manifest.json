@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Wand \u00b7 Session Planner",
+  "version": "1.0.0",
+  "description": "Plan a gaming session with a local goal checklist and a persistent break timer.",
+  "author": "BridgeKit contributors",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_title": "Session Planner",
+    "default_popup": "index.html"
+  },
+  "options_ui": {
+    "page": "index.html",
+    "open_in_tab": true
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'none'"
+  }
+}

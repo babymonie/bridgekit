@@ -1,0 +1,13 @@
+{
+  "apiVersion": 1,
+  "id": "wand-game-notebook",
+  "name": "Wand \u00b7 Game Notebook",
+  "version": "1.0.0",
+  "description": "Keep per-game notes, build ideas and things to try next.",
+  "entry": "index.html",
+  "permissions": [
+    "panel",
+    "storage.local",
+    "page.read"
+  ]
+}
