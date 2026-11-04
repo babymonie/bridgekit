@@ -25,7 +25,7 @@ async function candidate(archive,executable){
   if(!executable&&fs.existsSync(savedConfig))try{const saved=require('./patch-engine.cjs').loadProfile(savedConfig);if(saved.archive===fs.realpathSync(archive))executable=saved.executable;}catch{}
   let details;
   try{details=await inspect(archive,executable);}catch(error){details={archive,executable:null,name:path.basename(path.dirname(path.dirname(archive))),blockers:[error.message],warnings:[],candidate:false};}
-  const id=crypto.createHash('sha256').update(path.resolve(archive).toLowerCase()).digest('hex').slice(0,24);
+  const id=crypto.createHash('sha256').update(path.resolve(details.archive||archive).toLowerCase()).digest('hex').slice(0,24);
   const integration=faceitIntegration(details)||{kind:'generic'};
   let installed=false,profile=null;
   if(integration.kind==='faceit-preset')installed=!!require('./faceit.cjs').status(integration.root,integration.version).installed;
