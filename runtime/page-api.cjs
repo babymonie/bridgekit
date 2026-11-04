@@ -38,10 +38,11 @@ function domOperation(operation, payload, owner) {
   throw Error('Unknown DOM operation');
 }
 class PageAPI {
-  constructor({ manifest, root, isPageAllowed, settings, worldId = WORLD }) {
+  constructor({ manifest, root, isPageAllowed, settings, readPageInfo, worldId = WORLD }) {
     this.manifest = manifest; this.root = root; this.isPageAllowed = isPageAllowed; this.settings = settings;
     this.styles = new Map(); this.documents = new Map(); this.disposed = false;
     this.worldId = worldId;
+    this.readPageInfo=readPageInfo;
   }
   target(parent) {
     if (this.disposed || !parent || parent.isDestroyed() || parent.webContents.isDestroyed()) throw Error('Page unavailable');
@@ -61,9 +62,11 @@ class PageAPI {
   }
   async dispatch(parent, operation, payload = {}) {
     if(this.stopping)throw Error('Plugin is stopping');
+    if(this.disposed)throw Error('Page unavailable');
     const permission = permissions[operation];
     if (!permission || !this.manifest.permissions.includes(permission)) throw Error(`Permission denied: ${permission || operation}`);
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw Error('Invalid page request');
+    if(operation==='page.info'&&this.readPageInfo){const info=this.readPageInfo(parent);if(info)return info;}
     const wc = this.target(parent);
     if (operation === 'page.info') return { url: wc.getURL(), title: wc.getTitle() };
     if (operation === 'page.cleanup') return this.cleanup(parent);

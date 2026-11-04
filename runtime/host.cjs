@@ -9,7 +9,7 @@ const CHANNEL = 'electron-bridge:v1';
 const CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
 
 const BUILTIN_GRANTS = ['panel', 'storage.local', 'page.read', 'page.dom', 'page.styles', 'page.scripts', 'addons.manage'];
-function createHost({ adapterId, storageDirectory, pluginDirectory, grantedPermissions, isPageAllowed, addons, standalone = true, showOnAttach = true, worldId }) {
+function createHost({ adapterId, storageDirectory, pluginDirectory, grantedPermissions, isPageAllowed, readPageInfo, addons, standalone = true, showOnAttach = true, worldId }) {
   if(!pluginDirectory)throw Error('A registered plugin directory is required');
   const channel = standalone ? CHANNEL : `electron-bridge:plugin:${JSON.parse(fs.readFileSync(path.join(pluginDirectory,'manifest.json'),'utf8')).id}`;
   let closing = false;
@@ -44,7 +44,7 @@ function createHost({ adapterId, storageDirectory, pluginDirectory, grantedPermi
     tray.on('click', openPanel);
     tray.on('double-click', openPanel);
   }
-  const page = new PageAPI({ manifest, root, worldId, settings: () => ({ ...broker.data }), isPageAllowed: isPageAllowed || (value => { try { const url = new URL(value); return adapterId === 'faceit' ? url.origin === 'https://www.faceit.com' : value === pathToFileURL(path.join(__dirname, '../demo/index.html')).href; } catch { return false; } }) });
+  const page = new PageAPI({ manifest, root, worldId, readPageInfo, settings: () => ({ ...broker.data }), isPageAllowed: isPageAllowed || (value => { try { const url = new URL(value); return adapterId === 'faceit' ? url.origin === 'https://www.faceit.com' : value === pathToFileURL(path.join(__dirname, '../demo/index.html')).href; } catch { return false; } }) });
   const info = Object.freeze({ apiVersion: 1, sdkVersion: '0.4.0', adapter: adapterId, plugin: manifest.id, name: manifest.name, permissions: [...manifest.permissions], capabilities: ['page.read', 'page.dom', 'page.styles', 'page.scripts', 'contentScripts.document_end'], electron: process.versions.electron });
   // Separate, non-persistent session: no FACEIT cookies, local storage or permission grants.
   const isolatedSession = session.fromPartition(`bridge-${manifest.id}`);

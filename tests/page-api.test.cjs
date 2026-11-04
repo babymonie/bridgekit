@@ -8,6 +8,15 @@ const { PageAPI, resource } = require('../runtime/page-api.cjs');
 const { validateManifest } = require('../runtime/broker.cjs');
 const manifest = require('../plugins/hello-panel/manifest.json');
 const root = path.resolve(__dirname, '../plugins/hello-panel');
+
+test('trusted metadata is permission checked and does not enable DOM access',async()=>{
+ let calls=0;const readPageInfo=()=>{calls++;return{title:'Game title',url:'file:///approved/index.html'};};
+ const parent={isDestroyed:()=>false,webContents:{isDestroyed:()=>false,getURL:()=> 'file:///companion.html',getLastWebPreferences:()=>({contextIsolation:true,nodeIntegration:false})}};
+ const api=new PageAPI({manifest:{permissions:['page.read','page.scripts']},isPageAllowed:()=>false,readPageInfo});
+ assert.deepEqual(await api.dispatch(parent,'page.info'),{title:'Game title',url:'file:///approved/index.html'});assert.equal(calls,1);
+ await assert.rejects(api.dispatch(parent,'page.query',{selector:'body'}),/Page access denied/);await assert.rejects(api.dispatch(parent,'page.runScript',{file:'client.js'}),/Page access denied/);assert.equal(calls,1);
+ const denied=new PageAPI({manifest:{permissions:[]},readPageInfo});await assert.rejects(denied.dispatch(parent,'page.info'),/Permission denied/);assert.equal(calls,1);api.disposed=true;await assert.rejects(api.dispatch(parent,'page.info'),/Page unavailable/);
+});
 test('page operations require individual permissions before touching an app window', async () => {
   const api = new PageAPI({ manifest: { ...manifest, permissions: ['panel'] }, root, isPageAllowed: () => true, settings: () => ({}) });
   for (const operation of ['page.info', 'page.query', 'page.setText', 'page.insertHTML', 'page.addStyle', 'page.runScript']) await assert.rejects(api.dispatch(null, operation, {}), /Permission denied/);

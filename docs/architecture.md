@@ -28,3 +28,5 @@ The trusted picker IPC authenticates exact WebContents/main frame/entry URL and 
 Bridge/ElectronBridge namespaces are retained where needed for existing data. Renaming or adding a general patcher does not migrate FACEIT's installation or settings.
 
 Local companion panels may use a hidden sandboxed Bridge-owned workspace when no supported app parent exists. It has its own persistent session, no Node or preload, and no app-page grants. The fallback excludes SDK content/DOM/style/script/addon-management capabilities and native host/content permissions; it is not a general bypass of page qualification.
+
+Companion SDK page.info may use a trusted main-process metadata callback to return title/URL for an observed profile-approved app window. It is grant checked, excludes offscreen/closed/unapproved pages and rechecks the source each call. DOM/style/script operations never use this fallback.

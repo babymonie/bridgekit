@@ -19,8 +19,9 @@ app.whenReady().then(async()=>{try{
  let panel=BrowserWindow.getAllWindows().find(w=>!hostWindows.has(w)&&!w.webContents.getURL().endsWith('/companion.html'));await wait(panel,"!document.getElementById('save').disabled");
  check('SDK panel is isolated from Node and raw Electron',await panel.webContents.executeJavaScript("typeof require==='undefined'&&typeof process==='undefined'&&typeof bridge.storage.set==='function'"));
  if(unsafeParent){
-   await panel.webContents.executeJavaScript("document.getElementById('capture').click()");await wait(panel,"document.getElementById('status').textContent.includes('Page access denied')");
-   check('SDK page reads stay denied for Node-enabled Wand-like windows',true);
+   await panel.webContents.executeJavaScript("document.getElementById('capture').click()");await wait(panel,"document.getElementById('game').value==='Offline game fixture'");
+   check('SDK title capture uses metadata for Node-enabled Wand-like windows',true);
+   check('SDK DOM access remains denied in companion mode',await panel.webContents.executeJavaScript("bridge.page.query('body').then(()=>false,error=>error.message.includes('Page access denied'))"));
    await panel.webContents.executeJavaScript("document.getElementById('game').value='Manual game'");
  }else{await panel.webContents.executeJavaScript("document.getElementById('capture').click()");await wait(panel,"document.getElementById('game').value==='Offline game fixture'");}
  await panel.webContents.executeJavaScript("document.getElementById('notes').value='Try the frost build';document.getElementById('editor').requestSubmit()");await wait(panel,"document.getElementById('status').textContent==='Saved on this device.'");

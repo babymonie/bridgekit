@@ -56,3 +56,7 @@ Reproduced the exact undefined-loadExtension error using a session with legacy l
 ## Companion settings for Node-enabled apps (2026-11-04)
 
 Reproduced Open a supported app window first with the Wand SDK notebook and storage-only native planner under a Node-enabled, context-isolation-disabled fixture. The fallback uses a separate sandboxed companion workspace; page APIs reject both the unsafe app and the unapproved workspace. Page-modifying SDK packages cannot fall back, and stale/unapproved app parents are rechecked. 95 local tests, 10 normal Electron plugin checks and 11 unsafe-parent Electron checks passed. Static Wand main-window evidence was inspected without executing its packaged code. No change to Wand’s renderer preferences or page grants was made.
+
+## Brokered companion title capture (2026-11-04)
+
+96 local tests and 12 unsafe-parent Electron fixture checks passed. The actual notebook title button captures an approved Node-enabled fixture’s title through Electron getters. Direct DOM queries remain denied. Regression tests check the page.read grant, disposed API, source navigation away from approved pages and source destruction. No renderer preference or general page-access restriction was weakened.

@@ -128,3 +128,7 @@ Known limits include the uploader's offscreen API and Repeek's background polyfi
 The generic adapter uses runtime/app-profile.cjs for exact HTTP/custom-protocol origins and explicitly selected local HTML paths. Native Chrome mode is off by default, so ephemeral app sessions can use SDK plugins. Generic profiles isolate registry/settings by app ID under ElectronBridge/apps; the FACEIT preset keeps its original ElectronBridge/faceit directory.
 
 Packages may declare an optional apps array in bridge-plugin.json. App-targeted bundles are skipped for unrelated adapters and explicit incompatible imports are rejected. Generic profiles do not automatically activate bundled defaults. Closing/disable/cleanup rules remain unchanged.
+
+## Companion window metadata
+
+When local panels use the isolated companion workspace, `page.info()` can read the title and URL of a currently observed, profile-approved app window via Electron’s main-process getters. This still requires the plugin’s `page.read` grant. The plugin cannot choose another window or URL. Closed/offscreen/unapproved windows are excluded and current URLs are checked on every call. This narrow metadata path works with a Node-enabled app renderer; it never executes renderer code. All DOM, style and script methods retain the existing safe-renderer checks. The metadata fallback fails if no approved app window is available.

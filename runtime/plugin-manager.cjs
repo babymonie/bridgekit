@@ -10,6 +10,7 @@ function createPluginManager(options){
   const {app,BrowserWindow,session,ipcMain,dialog,Tray,Menu}=electron;
   const directory=options.directory||path.join(app.getPath('appData'),'ElectronBridge',options.adapterId);
   const registry=new Registry({directory,appId:options.adapterId,enableBundledDefaults:options.enableBundledDefaults,bundledDirectory:options.bundledDirectory||path.resolve(__dirname,'../plugins')});
+  const metadataWindows=new Map();
   const parents=new Map(),sdk=new Map(),reloadWindows=new Set(),observed=new WeakSet();
   const managerFile=path.resolve(__dirname,'manager/index.html'),managerURL=pathToFileURL(managerFile).href;
   let window=null,tray=null,quitting=false,lastParent=null,chrome,nativeCompatibilityError=null,companion=null;
@@ -19,7 +20,7 @@ function createPluginManager(options){
       if(entry.kind==='chrome-extension'){await chrome.activate(entry,info);markReload();return{reloadRequired:parents.size>0};}
       if(sdk.has(entry.id))return;
       const factory=options.sdkFactory||require('./host.cjs').createHost;
-      const host=factory({adapterId:options.adapterId,storageDirectory:path.join(directory,'settings'),pluginDirectory:info.directory,grantedPermissions:entry.grants,isPageAllowed:options.isPageAllowed,standalone:false,showOnAttach:false,worldId:entry.worldId,addons:{list:()=>controller.list(),open:(id,parent)=>controller.open(id,parent)}});
+      const host=factory({adapterId:options.adapterId,storageDirectory:path.join(directory,'settings'),pluginDirectory:info.directory,grantedPermissions:entry.grants,isPageAllowed:options.isPageAllowed,readPageInfo,standalone:false,showOnAttach:false,worldId:entry.worldId,addons:{list:()=>controller.list(),open:(id,parent)=>controller.open(id,parent)}});
       sdk.set(entry.id,host);
       for(const parent of parents.values())host.attach(parent);
     },
@@ -45,6 +46,13 @@ function createPluginManager(options){
   ready.catch(error=>console.error('[Bridge] Plugin manager:',error));
   function supported(parent){if(!parent||parent.isDestroyed())return false;const wc=parent.webContents,prefs=wc.getLastWebPreferences();return !wc.isDestroyed()&&!prefs.nodeIntegration&&prefs.contextIsolation&&!prefs.offscreen&&options.isPageAllowed(wc.getURL());}
   function parentWindow(){const focused=BrowserWindow.getFocusedWindow();return[parents.get(focused?.id),parents.get(lastParent),...[...parents.values()].reverse()].find(supported);}
+  function readPageInfo(parent){
+    if(parent!==companion||!parent||parent.isDestroyed())return null;
+    const focused=BrowserWindow.getFocusedWindow();
+    const source=[metadataWindows.get(focused?.id),...[...metadataWindows.values()].reverse()].find(win=>win&&!win.isDestroyed()&&!win.webContents.isDestroyed()&&options.isPageAllowed(win.webContents.getURL()));
+    if(!source)throw Error('No approved app window is available for its title');
+    return{url:source.webContents.getURL(),title:String(source.webContents.getTitle()).slice(0,2000)};
+  }
   async function companionParent(entry){
     const info=registry.package(entry.id),manifest=info.manifest;
     const localOnly=entry.kind==='chrome-extension'?!(manifest.content_scripts?.length)&&!(manifest.host_permissions?.length)&&entry.permissions.every(p=>p==='storage'):!(manifest.contentScripts?.length)&&!entry.permissions.some(p=>['page.dom','page.styles','page.scripts','addons.manage'].includes(p));
@@ -112,6 +120,7 @@ function createPluginManager(options){
   function observe(parent){
     if(parent.isDestroyed()||observed.has(parent))return;observed.add(parent);
     const wc=parent.webContents,prefs=wc.getLastWebPreferences();if(prefs.offscreen)return;
+    metadataWindows.set(parent.id,parent);parent.once('closed',()=>metadataWindows.delete(parent.id));
     const input=(event,key)=>{if(key.type==='keyDown'&&!key.isAutoRepeat&&key.control&&key.shift&&!key.alt&&!key.meta&&key.key.toLowerCase()==='b'){event.preventDefault();if(parents.has(parent.id))lastParent=parent.id;open().catch(console.error);}};
     wc.on('before-input-event',input);parent.once('closed',()=>wc.removeListener('before-input-event',input));
     // App-owned loaders may have Node enabled. Reopening trusted manager UI grants
