@@ -1,0 +1,48 @@
+name: App support request
+description: Request an adapter or qualify a new app build
+title: "[App]: "
+body:
+  - type: input
+    id: app
+    attributes:
+      label: App and exact version
+      placeholder: App name, version and release channel
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: OS and architecture
+      placeholder: Windows version, x64 or arm64
+    validations:
+      required: true
+  - type: input
+    id: distribution
+    attributes:
+      label: Distribution and official app URL
+      description: Direct installer, Store, managed installation, portable, or source build
+    validations:
+      required: true
+  - type: input
+    id: electron
+    attributes:
+      label: Electron version and archive SHA-256, if known
+  - type: textarea
+    id: feature
+    attributes:
+      label: What do you want plugins to change?
+      description: Describe the user-visible feature and current limitations.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Reproduction and technical notes
+      description: Use synthetic examples. Do not upload app archives, profiles, credentials or private account screenshots.
+  - type: checkboxes
+    id: expectations
+    attributes:
+      label: Expectations
+      options:
+        - label: I understand Electron use alone does not establish BridgeKit compatibility.
+          required: true

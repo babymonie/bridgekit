@@ -1,0 +1,8 @@
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#141619;color:#eceef1}
+body{margin:0;line-height:1.6}
+main{max-width:42rem;margin:auto;padding:40px 28px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:#ffba68}
+h1{font-size:30px;line-height:1.2;letter-spacing:-.03em;margin:12px 0 24px}
+h2{font-size:17px;margin:32px 0 6px}
+p{color:#c7cbd1;margin:8px 0}
+.note{border-top:1px solid #34383f;padding-top:20px;margin-top:32px;font-size:14px;color:#a5adb8}

@@ -1,0 +1,25 @@
+name: Bug report
+description: Report a reproducible BridgeKit problem
+title: "[Bug]: "
+body:
+  - type: input
+    id: versions
+    attributes:
+      label: BridgeKit commit/version, app version and OS
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps, expected behavior and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Sanitized error or minimal fixture
+      description: Remove tokens, profiles, account details and local user paths. Security reports follow SECURITY.md.
+  - type: input
+    id: plugin
+    attributes:
+      label: Plugin name/version and permissions, if relevant

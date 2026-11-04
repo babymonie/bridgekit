@@ -1,0 +1,16 @@
+'use strict';
+const {spawn}=require('node:child_process');
+const path=require('node:path');
+const fs=require('node:fs');
+const installed=process.argv.includes('--installed');
+const state=installed?require('./faceit.cjs').status():null;
+if(installed&&!state.installed)throw Error('Bridge installation required');
+const binary=installed?path.resolve(state.resources,'../FACEIT.exe'):require('electron');
+const output=path.resolve(__dirname,'..');
+const receipt=path.join(output,'forecast-verification.json');
+const before=fs.existsSync(receipt)?fs.statSync(receipt).mtimeMs:0;
+const env={...process.env,BRIDGE_VERIFICATION_OUTPUT:output};delete env.ELECTRON_RUN_AS_NODE;delete env.NODE_OPTIONS;
+const child=spawn(binary,installed?['--bridge-forecast-verify']:[path.resolve(__dirname,'../demo/forecast-check.cjs')],{env,windowsHide:true,stdio:'inherit'});
+let timedOut=false;
+const timer=setTimeout(()=>{timedOut=true;child.kill();console.error('FORECAST diagnostic did not exit');process.exitCode=1},40000);
+child.on('exit',code=>{clearTimeout(timer);const report=fs.existsSync(receipt)&&fs.statSync(receipt).mtimeMs>before?JSON.parse(fs.readFileSync(receipt,'utf8')):null;process.exitCode=timedOut||code||!report?.success?1:0});

@@ -1,0 +1,7 @@
+[class*="AdPlacementWrapper"],
+[data-fuse],
+.fuse-slot,
+[id^="F_Client_"],
+iframe[id^="google_ads_iframe_"] {
+  display: none !important;
+}

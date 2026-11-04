@@ -1,0 +1,23 @@
+name: Plugin or API request
+description: Propose a plugin or a permission-scoped capability
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Desired behavior and why
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Target app/plugin and exact version
+  - type: textarea
+    id: capability
+    attributes:
+      label: Required API, access and cleanup behavior
+      description: Prefer the narrowest capability. Raw Node/Electron access is not a plugin API.
+  - type: textarea
+    id: example
+    attributes:
+      label: Synthetic example or official API documentation

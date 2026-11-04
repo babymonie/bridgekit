@@ -1,0 +1,47 @@
+{
+  "name": "bridgekit",
+  "version": "0.4.1",
+  "private": true,
+  "description": "Permission-scoped plugins for Electron apps, with a reversible FACEIT adapter",
+  "main": "demo/manager.cjs",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "faceit:status": "node tools/faceit.cjs status",
+    "faceit:install": "node tools/faceit.cjs install",
+    "faceit:uninstall": "node tools/faceit.cjs uninstall",
+    "demo": "node tools/demo.cjs",
+    "verify": "node tools/demo.cjs --verify",
+    "faceit:verify": "node tools/verify-faceit.cjs",
+    "verify:adapter": "node tools/demo.cjs --verify --faceit-adapter",
+    "faceit:update": "node tools/faceit.cjs update",
+    "forecast:verify": "node tools/verify-forecast.cjs",
+    "forecast:verify-installed": "node tools/verify-forecast.cjs --installed",
+    "manager:test": "node --test tests/registry.test.cjs tests/controller.test.cjs tests/manager.test.cjs tests/chrome-manager.test.cjs tests/manager-ui.test.cjs",
+    "manager:verify": "node tools/verify-manager.cjs",
+    "manager:verify-installed": "node tools/verify-manager.cjs --installed",
+    "compat:verify": "node tools/verify-compat.cjs",
+    "compat:verify-installed": "node tools/verify-compat.cjs --installed",
+    "ad-cleaner:verify": "node tools/verify-ad-cleaner.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "electron": "45.2.1",
+    "jsdom": "26.1.0"
+  },
+  "dependencies": {
+    "adm-zip": "0.6.1",
+    "electron-chrome-extensions": "4.10.0"
+  },
+  "productName": "BridgeKit",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/babymonie/bridgekit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/babymonie/bridgekit/issues"
+  },
+  "homepage": "https://github.com/babymonie/bridgekit#readme"
+}

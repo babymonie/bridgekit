@@ -1,0 +1,9 @@
+{
+  "apiVersion": 1,
+  "id": "faceit-ad-cleaner",
+  "name": "FACEIT Ad Cleaner",
+  "version": "1.0.0",
+  "entry": "index.html",
+  "permissions": ["panel", "page.styles"],
+  "contentScripts": [{"runAt": "document_end", "css": ["ads.css"]}]
+}

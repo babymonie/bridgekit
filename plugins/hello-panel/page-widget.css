@@ -1,0 +1,5 @@
+#electron-bridge-demo-widget{position:fixed;bottom:24px;left:260px;z-index:2147483000;max-width:310px;padding:18px 20px;background:#1d2024;color:#f4f3ef;border:1px solid #555;border-top:3px solid #fbb86a;border-radius:8px;font:13px/1.5 'Segoe UI',sans-serif;box-shadow:0 8px 28px #0008}
+#electron-bridge-demo-widget strong{display:block;font-size:17px;margin-bottom:4px}
+#electron-bridge-demo-widget span{display:block;color:#c0c3c9;margin-bottom:12px}
+#electron-bridge-demo-widget button{background:#fbb86a;color:#161616;border:0;padding:10px 12px;border-radius:4px;cursor:pointer;font:600 12px 'Segoe UI',sans-serif}
+#electron-bridge-demo-widget button:focus-visible{outline:2px solid white;outline-offset:4px}

@@ -1,0 +1,5 @@
+{
+  "id": "hello-panel",
+  "kind": "sdk",
+  "defaultEnabled": false
+}

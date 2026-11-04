@@ -1,0 +1,26 @@
+{
+  "id": "hello-panel",
+  "name": "Hello panel (demo)",
+  "version": "0.2.0",
+  "apiVersion": 1,
+  "entry": "index.html",
+  "permissions": [
+    "panel",
+    "storage.local",
+    "page.read",
+    "page.dom",
+    "page.styles",
+    "page.scripts"
+  ],
+  "contentScripts": [
+    {
+      "runAt": "document_end",
+      "js": [
+        "page-widget.js"
+      ],
+      "css": [
+        "page-widget.css"
+      ]
+    }
+  ]
+}

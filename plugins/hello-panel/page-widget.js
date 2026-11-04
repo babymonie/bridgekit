@@ -1,0 +1,21 @@
+// Client-side plugin code. `document` is the app DOM; Node and Electron are absent.
+const id = 'electron-bridge-demo-widget';
+document.getElementById(id)?.remove();
+if (args?.enabled === false || (args?.enabled !== true && !bridgePage.settings.enhancePage)) return { enabled: false };
+const widget = document.createElement('aside');
+widget.id = id;
+widget.setAttribute('data-bridge-owner', bridgePage.pluginId);
+widget.setAttribute('aria-label', 'Bridge extension demo');
+const heading = document.createElement('strong');
+heading.textContent = 'Your app, extended.';
+const description = document.createElement('span');
+description.textContent = 'This widget lives in the app HTML.';
+const button = document.createElement('button');
+let clicks = 0;
+button.type = 'button';
+button.textContent = 'Run client-side code';
+button.addEventListener('click', () => { clicks++; button.textContent = `Client-side clicks: ${clicks}`; }, { signal: bridgePage.signal });
+widget.append(heading, description, button);
+document.body.append(widget);
+bridgePage.onCleanup(() => widget.remove());
+return { enabled: true, nodeAvailable: typeof require !== 'undefined', electronAvailable: typeof ipcRenderer !== 'undefined' };

@@ -1,0 +1,61 @@
+'use strict';
+const {app,BrowserWindow,session}=require('electron');
+const fs=require('node:fs'),path=require('node:path');
+const root=process.env.BRIDGE_VERIFICATION_OUTPUT||path.resolve(__dirname,'..');
+const {createChromeAddons}=require('../runtime/chrome-addons.cjs');
+const {Registry,inspectPackage}=require('../runtime/registry.cjs');
+app.setPath('userData',path.join(app.getPath('appData'),'ElectronBridge','forecast-test-profile'));
+app.whenReady().then(async()=>{
+ const result={checks:[],logs:[],success:false,runtime:process.versions.electron};
+ const check=(name,passed,detail)=>{result.checks.push({name,passed:!!passed,detail});if(!passed)throw Error(name)};
+ let cleanupSession, loadedId, registryDirectory;
+ const timer=setTimeout(()=>{result.error='Timeout';fs.writeFileSync(path.join(root,'forecast-verification.json'),JSON.stringify(result,null,2));app.exit(1)},30000);
+ try{
+  const ses=session.fromPartition('persist:forecast-offline-test');
+  cleanupSession=ses;
+  await ses.protocol.handle('https',request=>{
+   const u=new URL(request.url);
+   if(u.hostname==='www.faceit.com')return new Response('<!doctype html><html><head><title>Forecast offline fixture</title></head><body><main><h1>FORECAST fixture</h1></main></body></html>',{headers:{'content-type':'text/html'}});
+   if(u.pathname.includes('/resolve'))return Response.json({api:'https://api.fforecast.net',auth:'https://auth.fforecast.net',cdn:'https://cdn.fforecast.net',site:'https://fforecast.net'});
+   return Response.json({});
+  });
+  registryDirectory=fs.mkdtempSync(path.join(app.getPath('temp'),'bridge-forecast-registry-'));
+  const registry=new Registry({directory:registryDirectory});
+  const source=path.resolve(__dirname,'../plugins/faceit-forecast'),info=inspectPackage(source);
+  const entry=registry.register(source,{grants:info.permissions,enabled:true});
+  const addons=createChromeAddons({registry});
+  const state=addons.ensure(ses);
+  await addons.activate(entry,registry.package(entry.id));
+  const extension=state.loaded.get(entry.id).extension; loadedId=extension.id;
+  check('Original extension identity preserved',extension.id==='mpkkcddegpblmobincjkbpgfcbejjbcp',extension.id);
+  const w=new BrowserWindow({show:false,webPreferences:{session:ses,sandbox:true,contextIsolation:true,nodeIntegration:false}});addons.observe(w);
+  w.webContents.on('console-message',(_e,...args)=>result.logs.push(args));
+  await w.loadURL('https://www.faceit.com/en/players/BridgeFixture');
+  check('Document-start MAIN network hook loaded',await w.webContents.executeJavaScript('window.__forecastNetworkHooked===true'));
+  check('Original content bundle loaded',await w.webContents.executeJavaScript(`JSON.parse(document.documentElement.getAttribute('data-bridge-forecast')||'{}').contentScript===true`));
+  check('Content-script sync storage uses the local compatibility fallback',await w.webContents.executeJavaScript(`JSON.parse(document.documentElement.getAttribute('data-bridge-forecast')||'{}').syncLocal===true`));
+  const popup=new BrowserWindow({show:false,webPreferences:{session:ses,sandbox:true,contextIsolation:true,nodeIntegration:false}});
+  popup.webContents.on('console-message',(_e,...args)=>result.logs.push(args));
+  popup.webContents.on('preload-error',(_e,p,e)=>result.logs.push({preload:p,error:String(e)}));
+  await popup.loadURL(`chrome-extension://${extension.id}/src/visual/popup.html`);
+  check('Popup has native and compatibility APIs',await popup.webContents.executeJavaScript(`typeof chrome.runtime.sendMessage==='function' && typeof chrome.tabs.create==='function' && typeof chrome.permissions.request==='function'`));
+  check('Popup has no Node globals',await popup.webContents.executeJavaScript(`typeof require==='undefined' && typeof process==='undefined'`));
+  const reply=await popup.webContents.executeJavaScript(`chrome.runtime.sendMessage({type:'ADDR_HOSTS'})`);
+  check('Original MV3 worker responds to messages',!!reply?.hosts,reply);
+  check('Object storage read/write works',await popup.webContents.executeJavaScript(`(async()=>{await chrome.storage.local.set({bridgeTest:{nested:true}});const v=await chrome.storage.local.get('bridgeTest');await chrome.storage.local.remove('bridgeTest');return v.bridgeTest.nested})()`));
+  check('Bundled web-accessible configuration loads',await popup.webContents.executeJavaScript(`fetch(chrome.runtime.getURL('src/config/selectors.json')).then(r=>r.ok)`));
+  check('Bridge lists FORECAST as a ready addon',registry.get(entry.id).enabled && state.loaded.has(entry.id));
+  check('Tabs API creates, reads and closes addon-owned tabs',await popup.webContents.executeJavaScript(`(async()=>{const tab=await chrome.tabs.create({url:'https://auth.fforecast.net/bridge-fixture',active:false});const same=await chrome.tabs.get(tab.id);await chrome.tabs.remove(tab.id);return same.id===tab.id})()`));
+  await popup.webContents.executeJavaScript(`chrome.tabs.remove(${w.webContents.id})`);
+  check('Tabs API cannot close the main app window',!w.isDestroyed());
+  check('Permission query reports declared storage',await popup.webContents.executeJavaScript(`chrome.permissions.contains({permissions:['storage']})`));
+  check('Undeclared permissions are rejected',await popup.webContents.executeJavaScript(`chrome.permissions.request({permissions:['debugger']}).then(v=>!v,()=>true)`));
+  check('FORECAST popup opens through Bridge',await addons.open(entry.id,w));
+  const a=BrowserWindow.getAllWindows().filter(win=>win.getTitle().includes('FORECAST'));
+  check('Unknown addon cannot be opened',await addons.open('unknown',w).then(()=>false,()=>true));
+  const settingsWindow=BrowserWindow.getAllWindows().find(win=>win.webContents.getURL().endsWith(registry.package(entry.id).settingsEntry)&&win!==popup);
+  check('Plugin settings use the full window height',await settingsWindow.webContents.executeJavaScript(`document.querySelector('.container').getBoundingClientRect().height >= innerHeight-2`));
+  result.success=true;
+ }catch(error){result.error=error.stack}
+ finally{clearTimeout(timer);if(cleanupSession&&loadedId)cleanupSession.extensions.removeExtension(loadedId);for(const win of BrowserWindow.getAllWindows())win.destroy();if(registryDirectory)fs.rmSync(registryDirectory,{recursive:true,force:true});fs.writeFileSync(path.join(root,'forecast-verification.json'),JSON.stringify(result,null,2));app.exit(result.success?0:1)}
+}).catch(e=>{console.error(e);app.exit(1)});

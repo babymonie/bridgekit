@@ -1,0 +1,1 @@
+(()=>{if(typeof chrome==='undefined'||!chrome.storage?.local)return;try{Object.defineProperty(chrome.storage,'sync',{configurable:true,enumerable:true,value:chrome.storage.local});}catch{try{chrome.storage.sync=chrome.storage.local;}catch{}}})();

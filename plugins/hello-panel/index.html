@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Bridge · Hello panel</title>
+  <link rel="stylesheet" href="panel.css">
+  <script src="panel.js" defer></script>
+</head>
+<body>
+  <header><div class="brand"><span class="mark" aria-hidden="true">b.</span> BRIDGE <span class="version">/ 001</span></div><span class="live">LOCAL</span></header>
+  <main>
+    <p class="eyebrow">YOUR APP. MORE POSSIBILITIES.</p>
+    <h1>Your app, extended<span>.</span></h1>
+    <section class="plugin" aria-labelledby="plugin-name">
+      <div class="plugin-head"><div><p class="eyebrow">INSTALLED PLUGIN</p><h2 id="plugin-name">Hello panel</h2></div><span class="tag">v0.2</span></div>
+      <label class="setting" for="greeting"><span><strong>Show greeting</strong><small>Remembered between launches</small></span><input type="checkbox" id="greeting" disabled></label>
+      <p id="greeting-text" class="greeting" hidden>Make a little room for your ideas.</p>
+      <p id="save-state" role="status" aria-live="polite">Connecting to host…</p>
+    </section>
+    <section class="page-tools" aria-labelledby="page-tools-title"><h2 id="page-tools-title">Go beyond the panel</h2>
+      <label class="setting" for="enhance-page"><span><strong>Add an app widget</strong><small>Modify app HTML and run JavaScript</small></span><input type="checkbox" id="enhance-page" disabled></label>
+      <button id="inspect-page" type="button" disabled>Inspect app page</button>
+      <p id="page-status" role="status" aria-live="polite">Page tools are connecting…</p>
+    </section>
+    <section class="access" aria-labelledby="access-title"><h2 id="access-title">Extension permissions</h2><p>App HTML, CSS &amp; client scripts <span>Allowed</span></p><p>Plugin settings <span>Allowed</span></p><p>Node.js, Electron &amp; system files <span class="denied">No access</span></p></section>
+    <p id="host-state" class="host-state">Waiting for adapter</p>
+  </main>
+  <footer><span class="dot"></span> EXTEND THE EXPERIENCE <span>API 1</span></footer>
+</body>
+</html>
