@@ -3,6 +3,11 @@ const path=require('node:path');
 const {applySettingsLayout}=require('./settings-layout.cjs');
 const {approvedPermissions,bindPermissions}=require('./chrome-permissions.cjs');
 function webURL(value){const url=new URL(value);if(!['http:','https:'].includes(url.protocol))throw Error('Only HTTP(S) addon tabs are allowed');return url.href;}
+function extensionAPI(ses){
+  const api=typeof ses.extensions?.loadExtension==='function'&&typeof ses.extensions?.removeExtension==='function'?ses.extensions:ses;
+  if(typeof api.loadExtension!=='function'||typeof api.removeExtension!=='function')throw Error('This Electron session does not support loading Chrome extensions; SDK plugins remain available');
+  return api;
+}
 function createChromeAddons({registry,electron,extensionFactory}){
   const {BrowserWindow,dialog}=electron||require('electron');
   const ElectronChromeExtensions=extensionFactory||require('../vendor/electron-chrome-extensions').ElectronChromeExtensions;
@@ -19,7 +24,7 @@ function createChromeAddons({registry,electron,extensionFactory}){
   function ensure(ses){
     if(sessions.has(ses))return sessions.get(ses);
     if(!ses.isPersistent())throw Error('Chrome-compatible plugins need a persistent app session');
-    const state={id:sessions.size+1,manager:null,loaded:new Map(),pending:new Map()};sessions.set(ses,state);
+    const state={id:sessions.size+1,manager:null,extensions:extensionAPI(ses),loaded:new Map(),pending:new Map()};
     const manager=new ElectronChromeExtensions({session:ses,modulePath:path.resolve(__dirname,'../vendor/electron-chrome-extensions'),
       async createTab(details){const win=webWindow(ses,details);return[win.webContents,win];},
       selectTab(_wc,win){if(!win.isDestroyed()){if(win.isMinimized())win.restore();win.show();win.focus();}},
@@ -34,16 +39,16 @@ function createChromeAddons({registry,electron,extensionFactory}){
         if(requested.origins?.length||!requested.permissions?.length||requested.permissions.some(p=>p!=='clipboardWrite')||requested.permissions.some(p=>!entry.optionalPermissions.includes(p)))return false;
         const result=await dialog.showMessageBox({type:'question',title:'Bridge permission request',message:`Allow ${loaded.entry.name} to write to your clipboard?`,detail:'You can decline and keep the plugin enabled.',buttons:['Allow','Decline'],defaultId:1,cancelId:1});if(result.response===0){registry.approve(entry.id,[...new Set([...entry.grants,...requested.permissions])]);return true;}return false;
       }
-    });state.manager=manager;bindPermissions(manager,registry,active);
+    });state.manager=manager;bindPermissions(manager,registry,active);sessions.set(ses,state);
     for(const item of active.values())load(ses,state,item.entry,item.info).catch(error=>console.error('[Bridge] Plugin load:',error.message));
     return state;
   }
   function load(ses,state,entry,info){
     if(state.loaded.has(entry.id))return Promise.resolve(state.loaded.get(entry.id).extension);
     if(state.pending.has(entry.id))return state.pending.get(entry.id);
-    const pending=ses.extensions.loadExtension(info.directory).then(extension=>{
-      if(entry.nativeIdentity&&extension.id!==entry.nativeIdentity){ses.extensions.removeExtension(extension.id);throw Error('Extension identity differs from its manifest');}
-      if(!active.has(entry.id)){ses.extensions.removeExtension(extension.id);return null;}
+    const pending=Promise.resolve().then(()=>state.extensions.loadExtension(info.directory)).then(extension=>{
+      if(entry.nativeIdentity&&extension.id!==entry.nativeIdentity){state.extensions.removeExtension(extension.id);throw Error('Extension identity differs from its manifest');}
+      if(!active.has(entry.id)){state.extensions.removeExtension(extension.id);return null;}
       state.loaded.set(entry.id,{entry,info,extension});managerPermissions(state,extension);console.log(`[Bridge] Loaded ${entry.name} ${entry.version}`);return extension;
     }).finally(()=>state.pending.delete(entry.id));state.pending.set(entry.id,pending);return pending;
   }
@@ -53,7 +58,7 @@ function createChromeAddons({registry,electron,extensionFactory}){
     const hadActive=active.has(entry.id);
     active.delete(entry.id);
     for(const [key,item]of popups)if(item.id===entry.id){if(!item.window.isDestroyed())item.window.destroy();popups.delete(key);}
-    for(const [ses,state]of sessions){await state.pending.get(entry.id)?.catch(()=>{});const item=state.loaded.get(entry.id);if(item){ses.extensions.removeExtension(item.extension.id);state.loaded.delete(entry.id);}}
+    for(const state of sessions.values()){await state.pending.get(entry.id)?.catch(()=>{});const item=state.loaded.get(entry.id);if(item){state.extensions.removeExtension(item.extension.id);state.loaded.delete(entry.id);}}
     return{reloadRequired:hadActive};
   }
   function observe(win){

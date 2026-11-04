@@ -1,6 +1,15 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict');const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {fakeElectron}=require('./helpers/fake-electron.cjs');const {createPluginManager}=require('../runtime/plugin-manager.cjs');
+for(const phase of ['constructor','session initialization'])test(`SDK plugins and manager remain usable after native ${phase} fails`,async t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'bridge-native-failure-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));const fake=fakeElectron(root),calls=[];
+ const fail=()=>{throw Error("Cannot read properties of undefined (reading 'loadExtension')");};
+ const manager=createPluginManager({adapterId:'wand',directory:path.join(root,'registry'),bundledDirectory:path.join(root,'empty'),isPageAllowed:()=>true,electron:fake.electron,chromeFactory:phase==='constructor'?fail:()=>({ensure:fail}),sdkFactory:()=>({attach(){calls.push('attach');},openPanel(){calls.push('open');},async dispose(){}})});t.after(()=>manager.dispose());
+ await manager.ready;const parent=new fake.electron.BrowserWindow();await parent.loadURL('https://fixture.test');manager.observe(parent);
+ const sdk=require('../runtime/registry.cjs').inspectPackage(path.resolve(__dirname,'../plugins/wand-game-notebook'));manager.registry.register(sdk.directory,{grants:sdk.permissions,enabled:false});
+ await manager.dispatch('setEnabled',{id:sdk.id,enabled:true});await manager.dispatch('open',{id:sdk.id});assert.ok(calls.includes('attach'));assert.ok(calls.includes('open'));assert.match(manager.payload().nativeCompatibilityError,/loadExtension/);assert.ok(await manager.open());
+ const chrome=require('../runtime/registry.cjs').inspectPackage(path.resolve(__dirname,'../plugins/wand-session-planner'));manager.registry.register(chrome.directory,{grants:chrome.permissions,enabled:false});await assert.rejects(manager.dispatch('setEnabled',{id:chrome.id,enabled:true}),/SDK plugins remain available/);assert.equal(manager.registry.get(chrome.id).enabled,false);assert.equal(manager.controller.list().find(p=>p.id===sdk.id).status,'running');
+});
 async function setup(t){
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bridge-manager-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));const source=path.join(root,'source');fs.mkdirSync(source);fs.writeFileSync(path.join(source,'manifest.json'),JSON.stringify({apiVersion:1,id:'independent-plugin',name:'Independent Plugin',version:'1.2',entry:'index.html',permissions:['panel','storage.local','page.scripts']}));fs.writeFileSync(path.join(source,'index.html'),'<h1>Independent</h1>');
  const fake=fakeElectron(root),calls=[];const chrome={ensure(){},observe(){},async activate(e){calls.push('chrome-start:'+e.id);},async deactivate(){return{reloadRequired:true};},async open(){return true;}};

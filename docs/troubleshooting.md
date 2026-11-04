@@ -53,3 +53,9 @@ Candidate describes static checks, not a running-app or runtime guarantee. Fully
 ## Generic plugin has no page access
 
 Select exact app origins (including custom protocols if used) or the correct local HTML page. The app page must keep Node disabled/context isolation enabled. Native mode is optional and off by default. The picker only installs the host; it does not grant every plugin access or auto-enable bundles.
+
+## loadExtension is undefined on an older Electron app
+
+The native host supports both modern `session.extensions.loadExtension/removeExtension` and legacy session-level methods. Update BridgeKit’s installed runtime through the patcher while the target app is fully closed, then reopen it yourself. Reimporting the plugin ZIP alone does not update runtime code. If neither API is present, Chrome plugins report an unsupported-session error while SDK plugins and the manager remain usable. Native initialization failures also leave SDK functionality available.
+
+Electron documents the API move in its [breaking changes](https://www.electronjs.org/docs/latest/breaking-changes). This fallback addresses loading/removal, not every Chromium extension API difference between app versions.

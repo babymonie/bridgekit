@@ -12,7 +12,7 @@ function createPluginManager(options){
   const registry=new Registry({directory,appId:options.adapterId,enableBundledDefaults:options.enableBundledDefaults,bundledDirectory:options.bundledDirectory||path.resolve(__dirname,'../plugins')});
   const parents=new Map(),sdk=new Map(),reloadWindows=new Set(),observed=new WeakSet();
   const managerFile=path.resolve(__dirname,'manager/index.html'),managerURL=pathToFileURL(managerFile).href;
-  let window=null,tray=null,quitting=false,lastParent=null,chrome;
+  let window=null,tray=null,quitting=false,lastParent=null,chrome,nativeCompatibilityError=null;
   const markReload=()=>{for(const parent of parents.values())reloadWindows.add(parent.id);};
   const runtime={
     async activate(entry,info){
@@ -32,14 +32,19 @@ function createPluginManager(options){
   };
   const controller=new PluginController({registry,runtime});
   const ready=app.whenReady().then(async()=>{
-    chrome=options.nativeExtensions===false?require('./disabled-native.cjs').createDisabledNative():(options.chromeFactory||require('./chrome-addons.cjs').createChromeAddons)({registry});
-    chrome.ensure(session.defaultSession);
+    try{
+      chrome=options.nativeExtensions===false?require('./disabled-native.cjs').createDisabledNative():(options.chromeFactory||require('./chrome-addons.cjs').createChromeAddons)({registry,...(options.electron?{electron:options.electron}:{})});
+      chrome.ensure(session.defaultSession);
+    }catch(error){
+      nativeCompatibilityError=error.message;chrome=require('./disabled-native.cjs').createDisabledNative(error.message);
+      console.warn('[Bridge] Native Chrome unavailable; continuing with SDK plugins:',error.message);
+    }
     const result=await controller.initialize();
     ensureTray();return result;
   });
   ready.catch(error=>console.error('[Bridge] Plugin manager:',error));
   function parentWindow(){const focused=BrowserWindow.getFocusedWindow();return parents.get(focused?.id)||parents.get(lastParent)||[...parents.values()].at(-1);}
-  function payload(){return{plugins:controller.list(),discoveryErrors:registry.discoveryErrors,reloadRequired:reloadWindows.size>0,pluginDirectory:registry.packages};}
+  function payload(){return{plugins:controller.list(),discoveryErrors:registry.discoveryErrors,reloadRequired:reloadWindows.size>0,pluginDirectory:registry.packages,nativeCompatibilityError};}
   function changed(){if(window&&!window.isDestroyed())window.webContents.send('electron-bridge:manager-changed');}
   function ensureTray(){if(tray)return;tray=new Tray(path.join(__dirname,'bridge-icon.png'));tray.setToolTip('Bridge Â· Plugin manager (Ctrl+Shift+B)');tray.setContextMenu(Menu.buildFromTemplate([{label:'Open Bridge plugin manager',click:()=>open().catch(console.error)}]));tray.on('click',()=>open().catch(console.error));tray.on('double-click',()=>open().catch(console.error));}
   async function open(){

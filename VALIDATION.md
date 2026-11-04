@@ -48,3 +48,7 @@ This plugin requests panel and page.styles only. It is packaged separately and d
 ## Wand plugin packages (2026-11-04)
 
 Six focused Node/JSDOM checks and ten actual Electron manager checks passed for the standalone SDK notebook and native MV3 planner. Fixture checks include local persistence after disable/re-enable, panel disposal, SDK/native Node isolation, title capture and full-height native settings. This is offline fixture evidence, not live Wand or Chrome-browser validation.
+
+## Legacy native extension API fix (2026-11-04)
+
+Reproduced the exact undefined-loadExtension error using a session with legacy loadExtension/removeExtension methods and no extensions property. The regression now passes through native loading, settings opening and removal, with session method binding preserved. Two further regression tests confirm SDK activation/opening and manager access survive native constructor or session initialization failure. All 93 local tests and 10 actual Electron Wand-plugin fixture checks passed. The installed Wand 12.0.3 runtime was updated only after process checks proved it closed; archive and executable were unchanged. Wand itself was not launched for live validation.
