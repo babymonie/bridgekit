@@ -1,7 +1,7 @@
 'use strict';
 const {spawn}=require('node:child_process'),fs=require('node:fs'),path=require('node:path');
 const output=path.resolve(__dirname,'..'),receipt=path.join(output,'wand-plugins-verification.json'),before=fs.existsSync(receipt)?fs.statSync(receipt).mtimeMs:0;
-const env={...process.env,BRIDGE_VERIFICATION_OUTPUT:output};delete env.ELECTRON_RUN_AS_NODE;delete env.NODE_OPTIONS;
+const env={...process.env,BRIDGE_VERIFICATION_OUTPUT:output,...(process.argv.includes('--unsafe-parent')?{BRIDGE_TEST_UNSAFE_PARENT:'1'}:{})};delete env.ELECTRON_RUN_AS_NODE;delete env.NODE_OPTIONS;
 const child=spawn(require('electron'),[path.resolve(__dirname,'../demo/wand-plugins-check.cjs')],{env,stdio:'inherit',windowsHide:false});
 const timer=setTimeout(()=>{child.kill();process.exitCode=1;},45000);
 child.on('error',error=>{clearTimeout(timer);console.error(error);process.exitCode=1;});

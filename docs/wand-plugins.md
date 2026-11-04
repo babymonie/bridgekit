@@ -28,3 +28,11 @@ Both packages work locally with no analytics or external requests. They are orig
 ## Evidence
 
 `node --test tests/wand-plugins.test.cjs` covers package discovery/permissions, notebook save/reopen/delete, errors and unsaved edits, escaped rendering, planner persistence, deadlines and validation. `npm run wand:verify` loads both original packages through the real BridgeKit manager in a temporary offline Electron fixture, exercises persistence after disabling/re-enabling, checks Node isolation and full-height settings. It does not launch or patch Wand. Live Wand 12.0.3 compatibility and Chrome-browser UI have not been exercised by this verification.
+
+## Wand 12.0.3 uses companion settings mode
+
+Static inspection of Wand 12.0.3’s packaged main-window setup found Node integration enabled and context isolation disabled. BridgeKit refuses to inject SDK content or attach native page integrations to that renderer. Changing Wand’s renderer preferences is not part of this integration.
+
+Local tools can instead open settings under a hidden, sandboxed Bridge-owned workspace with a separate persistent companion session. Game Notebook’s manual notes and Session Planner work there; Notebook’s optional page-title button reports Page access denied. Enter the game name manually. This workspace never grants access to Wand’s renderer. Its native storage is separate from an earlier app-session installation; no automatic data migration is performed.
+
+The fallback accepts SDK panels without content scripts, DOM/style/script or addon-management permissions, and Chrome packages with only storage permission and no host access/content scripts. Page-modifying extensions still require a supported app window. Tests can reproduce this layout with `node tools/verify-wand-plugins.cjs --unsafe-parent` (11 actual Electron checks). This remains fixture evidence; the user launches Wand for live validation.

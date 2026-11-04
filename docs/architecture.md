@@ -26,3 +26,5 @@ The plugin registry/controller/broker layers remain app-independent. Sidecar app
 The trusted picker IPC authenticates exact WebContents/main frame/entry URL and exposes only discovery, selection and reviewed operations. Plugins cannot invoke it. SDK panels remain sandboxed, Node-disabled and capability-checked; isolated worlds share the app DOM. Native compatibility remains partial.
 
 Bridge/ElectronBridge namespaces are retained where needed for existing data. Renaming or adding a general patcher does not migrate FACEIT's installation or settings.
+
+Local companion panels may use a hidden sandboxed Bridge-owned workspace when no supported app parent exists. It has its own persistent session, no Node or preload, and no app-page grants. The fallback excludes SDK content/DOM/style/script/addon-management capabilities and native host/content permissions; it is not a general bypass of page qualification.

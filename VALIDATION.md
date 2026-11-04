@@ -52,3 +52,7 @@ Six focused Node/JSDOM checks and ten actual Electron manager checks passed for 
 ## Legacy native extension API fix (2026-11-04)
 
 Reproduced the exact undefined-loadExtension error using a session with legacy loadExtension/removeExtension methods and no extensions property. The regression now passes through native loading, settings opening and removal, with session method binding preserved. Two further regression tests confirm SDK activation/opening and manager access survive native constructor or session initialization failure. All 93 local tests and 10 actual Electron Wand-plugin fixture checks passed. The installed Wand 12.0.3 runtime was updated only after process checks proved it closed; archive and executable were unchanged. Wand itself was not launched for live validation.
+
+## Companion settings for Node-enabled apps (2026-11-04)
+
+Reproduced Open a supported app window first with the Wand SDK notebook and storage-only native planner under a Node-enabled, context-isolation-disabled fixture. The fallback uses a separate sandboxed companion workspace; page APIs reject both the unsafe app and the unapproved workspace. Page-modifying SDK packages cannot fall back, and stale/unapproved app parents are rechecked. 95 local tests, 10 normal Electron plugin checks and 11 unsafe-parent Electron checks passed. Static Wand main-window evidence was inspected without executing its packaged code. No change to Wand’s renderer preferences or page grants was made.

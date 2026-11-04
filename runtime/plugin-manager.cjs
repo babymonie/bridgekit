@@ -12,7 +12,7 @@ function createPluginManager(options){
   const registry=new Registry({directory,appId:options.adapterId,enableBundledDefaults:options.enableBundledDefaults,bundledDirectory:options.bundledDirectory||path.resolve(__dirname,'../plugins')});
   const parents=new Map(),sdk=new Map(),reloadWindows=new Set(),observed=new WeakSet();
   const managerFile=path.resolve(__dirname,'manager/index.html'),managerURL=pathToFileURL(managerFile).href;
-  let window=null,tray=null,quitting=false,lastParent=null,chrome,nativeCompatibilityError=null;
+  let window=null,tray=null,quitting=false,lastParent=null,chrome,nativeCompatibilityError=null,companion=null;
   const markReload=()=>{for(const parent of parents.values())reloadWindows.add(parent.id);};
   const runtime={
     async activate(entry,info){
@@ -28,7 +28,7 @@ function createPluginManager(options){
       const host=sdk.get(entry.id);if(host){sdk.delete(entry.id);await host.dispose();}
       const needsReload=!!host&&(entry.permissions.includes('page.scripts')||entry.permissions.includes('page.dom'));if(needsReload)markReload();return{reloadRequired:needsReload};
     },
-    async open(entry,parent){if(!parent||parent.isDestroyed())throw Error('Open a supported app window first');if(entry.kind==='chrome-extension')return chrome.open(entry.id,parent);const host=sdk.get(entry.id);if(!host)throw Error('Plugin is not running');host.attach(parent);host.openPanel();return true;}
+    async open(entry,parent){if(!parent||parent.isDestroyed())parent=await companionParent(entry);if(entry.kind==='chrome-extension')return chrome.open(entry.id,parent);const host=sdk.get(entry.id);if(!host)throw Error('Plugin is not running');host.attach(parent);host.openPanel();return true;}
   };
   const controller=new PluginController({registry,runtime});
   const ready=app.whenReady().then(async()=>{
@@ -43,7 +43,21 @@ function createPluginManager(options){
     ensureTray();return result;
   });
   ready.catch(error=>console.error('[Bridge] Plugin manager:',error));
-  function parentWindow(){const focused=BrowserWindow.getFocusedWindow();return parents.get(focused?.id)||parents.get(lastParent)||[...parents.values()].at(-1);}
+  function supported(parent){if(!parent||parent.isDestroyed())return false;const wc=parent.webContents,prefs=wc.getLastWebPreferences();return !wc.isDestroyed()&&!prefs.nodeIntegration&&prefs.contextIsolation&&!prefs.offscreen&&options.isPageAllowed(wc.getURL());}
+  function parentWindow(){const focused=BrowserWindow.getFocusedWindow();return[parents.get(focused?.id),parents.get(lastParent),...[...parents.values()].reverse()].find(supported);}
+  async function companionParent(entry){
+    const info=registry.package(entry.id),manifest=info.manifest;
+    const localOnly=entry.kind==='chrome-extension'?!(manifest.content_scripts?.length)&&!(manifest.host_permissions?.length)&&entry.permissions.every(p=>p==='storage'):!(manifest.contentScripts?.length)&&!entry.permissions.some(p=>['page.dom','page.styles','page.scripts','addons.manage'].includes(p));
+    if(!localOnly)throw Error('This plugin needs a supported app page: open an approved window with Node disabled and context isolation enabled. Local companion plugins can open without page access.');
+    if(companion&&!companion.isDestroyed())return companion;
+    const ses=session.fromPartition(`persist:bridgekit-companion-${options.adapterId}`);
+    ses.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));ses.setPermissionCheckHandler(()=>false);
+    const entryURL=pathToFileURL(path.join(__dirname,'companion.html')).href;
+    const anchor=new BrowserWindow({show:false,title:'Bridge · Isolated companion workspace',webPreferences:{session:ses,sandbox:true,contextIsolation:true,nodeIntegration:false,nodeIntegrationInWorker:false,webviewTag:false,webSecurity:true}});companion=anchor;
+    anchor.webContents.setWindowOpenHandler(()=>({action:'deny'}));anchor.webContents.on('will-navigate',event=>event.preventDefault());anchor.webContents.on('will-attach-webview',event=>event.preventDefault());
+    anchor.on('closed',()=>{if(companion===anchor)companion=null;});
+    try{await anchor.loadURL(entryURL);}catch(error){anchor.destroy();throw error;}return anchor;
+  }
   function payload(){return{plugins:controller.list(),discoveryErrors:registry.discoveryErrors,reloadRequired:reloadWindows.size>0,pluginDirectory:registry.packages,nativeCompatibilityError};}
   function changed(){if(window&&!window.isDestroyed())window.webContents.send('electron-bridge:manager-changed');}
   function ensureTray(){if(tray)return;tray=new Tray(path.join(__dirname,'bridge-icon.png'));tray.setToolTip('Bridge Â· Plugin manager (Ctrl+Shift+B)');tray.setContextMenu(Menu.buildFromTemplate([{label:'Open Bridge plugin manager',click:()=>open().catch(console.error)}]));tray.on('click',()=>open().catch(console.error));tray.on('double-click',()=>open().catch(console.error));}
@@ -109,7 +123,7 @@ function createPluginManager(options){
     parent.on('focus',()=>{if(parents.has(parent.id))lastParent=parent.id;});
     parent.on('closed',()=>{parents.delete(parent.id);reloadWindows.delete(parent.id);wc.removeListener('before-input-event',input);wc.removeListener('did-finish-load',attach);wc.removeListener('did-navigate-in-page',attach);});attach();
   }
-  async function dispose(){quitting=true;await ready.catch(()=>{});for(const entry of registry.list())await runtime.deactivate(entry).catch(()=>{});ipcMain.removeHandler(CHANNEL);app.removeListener('before-quit',beforeQuit);if(window&&!window.isDestroyed())window.destroy();if(tray){tray.destroy();tray=null;}}
+  async function dispose(){quitting=true;await ready.catch(()=>{});for(const entry of registry.list())await runtime.deactivate(entry).catch(()=>{});ipcMain.removeHandler(CHANNEL);app.removeListener('before-quit',beforeQuit);if(window&&!window.isDestroyed())window.destroy();if(companion&&!companion.isDestroyed())companion.destroy();if(tray){tray.destroy();tray=null;}}
   return{ready,open,observe,registry,controller,dispatch,payload,dispose};
 }
 module.exports={createPluginManager};

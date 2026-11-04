@@ -59,3 +59,7 @@ Select exact app origins (including custom protocols if used) or the correct loc
 The native host supports both modern `session.extensions.loadExtension/removeExtension` and legacy session-level methods. Update BridgeKit’s installed runtime through the patcher while the target app is fully closed, then reopen it yourself. Reimporting the plugin ZIP alone does not update runtime code. If neither API is present, Chrome plugins report an unsupported-session error while SDK plugins and the manager remain usable. Native initialization failures also leave SDK functionality available.
 
 Electron documents the API move in its [breaking changes](https://www.electronjs.org/docs/latest/breaking-changes). This fallback addresses loading/removal, not every Chromium extension API difference between app versions.
+
+## Open a supported app window first
+
+Some apps, including Wand 12.0.3, use Node-enabled main renderers. BridgeKit keeps page integrations blocked for those windows. Local SDK companion panels and storage-only Chrome plugins can open in an isolated Bridge-owned workspace instead. Update the runtime while the app is closed to use this fallback. Page-reading buttons remain denied and page-modifying extensions still need a supported app page. Approved-page selection is rechecked when opening settings, including after navigation.

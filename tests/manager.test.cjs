@@ -1,6 +1,17 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict');const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {fakeElectron}=require('./helpers/fake-electron.cjs');const {createPluginManager}=require('../runtime/plugin-manager.cjs');
+test('local companion settings open without attaching plugins to a Node-enabled app window',async t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'bridge-companion-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));const fake=fakeElectron(root),attached=[],nativeParents=[];
+ const manager=createPluginManager({adapterId:'wand',directory:path.join(root,'data'),bundledDirectory:path.join(root,'empty'),electron:fake.electron,isPageAllowed:url=>url==='file:///wand/index.html',chromeFactory:()=>({ensure(){},observe(){},async activate(){},async deactivate(){},async open(_id,parent){nativeParents.push(parent);}}),sdkFactory:options=>({attach(parent){attached.push({parent,options});},openPanel(){},async dispose(){}})});t.after(()=>manager.dispose());await manager.ready;
+ const unsafe=new fake.electron.BrowserWindow({webPreferences:{nodeIntegration:true,contextIsolation:false}});await unsafe.loadURL('file:///wand/index.html');manager.observe(unsafe);
+ for(const id of ['wand-game-notebook','wand-session-planner']){const info=require('../runtime/registry.cjs').inspectPackage(path.resolve(__dirname,'../plugins',id));manager.registry.register(info.directory,{grants:info.permissions,enabled:false});await manager.dispatch('setEnabled',{id,enabled:true});await manager.dispatch('open',{id});}
+ assert.equal(attached.some(item=>item.parent===unsafe),false);assert.equal(attached.length,1);const workspace=attached[0].parent,prefs=workspace.webContents.getLastWebPreferences();assert.equal(prefs.nodeIntegration,false);assert.equal(prefs.contextIsolation,true);assert.equal(prefs.sandbox,true);assert.ok(workspace.webContents.session.isPersistent());assert.equal(nativeParents[0],workspace);
+ const {PageAPI}=require('../runtime/page-api.cjs');const page=new PageAPI({manifest:{},isPageAllowed:attached[0].options.isPageAllowed});assert.throws(()=>page.target(unsafe),/Page access denied/);assert.throws(()=>page.target(workspace),/Page access denied/);
+});
+test('page-modifying SDK plugins cannot fall back to the companion workspace',async t=>{
+ const s=await setup(t);s.fake.electron.dialog.openPaths=[s.source];await s.manager.dispatch('installFolder');await s.manager.dispatch('setEnabled',{id:'independent-plugin',enabled:true});await s.parent.loadURL('https://unapproved.test/');await assert.rejects(s.manager.dispatch('open',{id:'independent-plugin'}),/needs a supported app page/);assert.equal(s.fake.windows.some(w=>w.webContents.getURL().endsWith('/companion.html')),false);
+});
 for(const phase of ['constructor','session initialization'])test(`SDK plugins and manager remain usable after native ${phase} fails`,async t=>{
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'bridge-native-failure-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));const fake=fakeElectron(root),calls=[];
  const fail=()=>{throw Error("Cannot read properties of undefined (reading 'loadExtension')");};
