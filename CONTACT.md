@@ -7,7 +7,7 @@ Maintainer: [@babymonie](https://github.com/babymonie).
 - [Report a bug](https://github.com/babymonie/bridgekit/issues/new?template=bug-report.yml)
 - [Existing issues](https://github.com/babymonie/bridgekit/issues)
 
-This repository is private; issues require collaborator access. Contact the maintainer through an existing GitHub channel for access. No public email, Discord invite or paid support channel is designated.
+Use the public issue forms for support. Use the security reporting channel below for sensitive findings.
 
 For app requests include name, exact version, OS/architecture, distribution/channel, Electron version if known, desired feature and reproduction. A version/hash is usually better than uploading the whole app. Do not attach profiles, credentials, private screenshots or copyrighted packages.
 

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Install BridgeKit, check Electron app compatibility, and find open-source plugins for FACEIT, Wand, and other compatible apps.">
+  <title>BridgeKit — Plugins for Electron apps</title>
+  <link rel="icon" href="bridge-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="site.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="header wrap">
+  <a class="brand" href="./"><img src="bridge-icon.png" alt="" width="32" height="32">BridgeKit</a>
+  <nav aria-label="Main navigation">
+    <a href="#install">Install</a><a href="#plugins">Plugins</a><a href="#compatibility">Compatibility</a>
+  </nav>
+  <a class="repo" href="https://github.com/babymonie/bridgekit">GitHub <span aria-hidden="true">↗</span></a>
+</header>
+<main id="main">
+  <section class="hero wrap" aria-labelledby="hero-title">
+    <div>
+      <p class="eyebrow">OPEN SOURCE · MIT LICENSE</p>
+      <h1 id="hero-title">Plugins for your<br>Electron apps<span>.</span></h1>
+      <p class="lede">Give compatible desktop apps a plugin manager. Pick what runs, review its access, and restore the original app when you’re done.</p>
+      <div class="actions"><a class="button primary" href="#install">Install BridgeKit <span aria-hidden="true">↓</span></a><a class="button" href="#plugins">Browse plugins <span aria-hidden="true">↗</span></a></div>
+    </div>
+    <div class="console">
+      <div class="console-head"><span class="indicator"></span> Bridge plugin manager</div>
+      <div class="console-body">
+        <p class="eyebrow">EXAMPLE · FACEIT</p>
+        <p class="console-title">Your plugins<span>.</span></p>
+        <div class="console-plugin"><div class="tile faceit" aria-hidden="true">F</div><div><strong>FACEIT Ad Cleaner</strong><small>Bridge SDK · Cosmetic cleanup</small></div><span class="state">Disabled</span></div>
+        <div class="console-foot">Open the manager <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>B</kbd></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap" id="plugins">
+    <div class="section-head"><div><p class="eyebrow">DISCOVER</p><h2>Plugin store</h2></div><a href="https://github.com/babymonie/bridgekit/blob/main/CONTRIBUTING.md#submit-a-plugin">Submit a plugin ↗</a></div>
+    <p>Download a ZIP, then open your app’s Bridge manager and choose <strong>Install ZIP</strong>. Review access and enable the plugin when you’re ready. Bundled plugins can be enabled directly.</p>
+    <div class="filters" hidden>
+      <label>Search plugins<input type="search" id="search" placeholder="Name, feature, or permission"></label>
+      <label>App<select id="app"><option value="">All apps</option><option value="faceit">FACEIT</option><option value="wand">Wand</option><option value="general">General</option></select></label>
+    </div>
+    <p class="results" id="results" role="status"></p>
+    <div class="cards"><!-- PLUGIN_CARDS --></div>
+  </section>
+
+  <section class="section wrap" id="install">
+    <div class="section-head"><div><p class="eyebrow">GET STARTED</p><h2>Install BridgeKit</h2></div><a href="https://github.com/babymonie/bridgekit/releases/tag/v0.5.0">Release v0.5.0 ↗</a></div>
+    <div class="install-grid">
+      <article class="guide"><h3>1. Set up the desktop picker</h3><p>Install <a href="https://nodejs.org/">Node.js 22 or newer</a> and Git. Run these commands in a terminal. You can also extract the release’s source ZIP, open a terminal in that folder, and run the last two commands.</p>
+      <pre><code>git clone https://github.com/babymonie/bridgekit.git
+cd bridgekit
+npm ci
+npm start</code></pre>
+      <p>Run <code>npm run demo</code> to try plugins in an offline demo.</p></article>
+      <article class="guide"><h3>2. Patch a compatible app</h3><p>In the picker, select an installed app or add its folder. Read the compatibility result, choose the app pages that plugins may access, and fully exit the target app. Use <strong>Review patch</strong> to check the backup and file changes.</p><p>Reopen the app normally. Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd> or use the Bridge tray icon. To undo the patch, close the app and choose <strong>Restore original</strong> in the picker.</p><p><a href="https://github.com/babymonie/bridgekit/blob/main/docs/patching-electron.md">Read the full patching guide ↗</a></p></article>
+    </div>
+  </section>
+
+  <section class="section wrap" id="compatibility">
+    <div class="section-head"><div><p class="eyebrow">CHECK YOUR BUILD</p><h2>App compatibility</h2></div><a href="https://github.com/babymonie/bridgekit/issues/new?template=app-request.yml">Request an app ↗</a></div>
+    <div class="guides">
+      <article class="guide" id="faceit"><div class="row"><h3>FACEIT</h3><span class="tag">Windows preset</span></div><p>The preset accepts the original archive hashes for Windows builds <strong>2.10.0 and 2.11.0</strong>. If the status check reports an unknown build, leave it unpatched and request support for your version.</p><p>Finish any active match and fully exit FACEIT, including the tray process. From the BridgeKit folder, check the status and install.</p><pre><code>npm run faceit:status
+npm run faceit:install</code></pre><p>Reopen FACEIT and press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd>. With FACEIT closed, use <code>npm run faceit:uninstall</code> to restore the original archive.</p><a href="https://github.com/babymonie/bridgekit/blob/main/docs/patching-faceit.md">FACEIT hashes, updates, and troubleshooting ↗</a></article>
+      <article class="guide" id="wand"><div class="row"><h3>Wand</h3><span class="tag">Companion mode</span></div><p>Use the app picker with the <code>wand</code> profile ID and approve the specific Wand pages. Session Planner requires optional, partial Chrome extension compatibility. Game Notebook uses the Bridge SDK.</p><p>The companion panels were exercised in an offline Electron fixture. Live Wand 12.0.3 validation is pending.</p><a href="https://github.com/babymonie/bridgekit/blob/main/docs/wand-plugins.md">Wand setup and permissions ↗</a></article>
+      <article class="guide" id="other-apps"><div class="row"><h3>Other Electron apps</h3><span class="tag">Scan first</span></div><p>Use the picker to check your exact installation. Packed ASAR builds can qualify for a reviewed patch on Windows and Linux. macOS bundles are inspection-only. Repeek still has unresolved Chrome API compatibility gaps.</p><a href="https://github.com/babymonie/bridgekit/blob/main/docs/supported-apps.md">See supported layouts and known limits ↗</a></article>
+    </div>
+  </section>
+</main>
+<footer class="footer wrap"><strong>BridgeKit</strong><p>Independent open-source project.</p><nav aria-label="Project resources"><a href="https://github.com/babymonie/bridgekit/blob/main/SDK.md">SDK</a><a href="https://github.com/babymonie/bridgekit/blob/main/SECURITY.md">Security</a><a href="https://github.com/babymonie/bridgekit/issues">Support</a></nav></footer>
+</body>
+</html>

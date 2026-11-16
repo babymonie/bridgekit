@@ -7,7 +7,7 @@ const {preparePackage}=require('./package-import.cjs');
 const CHANNEL='electron-bridge:manager:v1';
 function createPluginManager(options){
   const electron=options.electron||require('electron');
-  const {app,BrowserWindow,session,ipcMain,dialog,Tray,Menu}=electron;
+  const {app,BrowserWindow,session,ipcMain,dialog,Tray,Menu,shell}=electron;
   const directory=options.directory||path.join(app.getPath('appData'),'ElectronBridge',options.adapterId);
   const registry=new Registry({directory,appId:options.adapterId,enableBundledDefaults:options.enableBundledDefaults,bundledDirectory:options.bundledDirectory||path.resolve(__dirname,'../plugins')});
   const metadataWindows=new Map();
@@ -96,6 +96,7 @@ function createPluginManager(options){
     if(operation==='list')return payload();
     if(operation==='installFolder')return install('folder');
     if(operation==='installZip')return install('zip');
+    if(operation==='openStore'){await shell.openExternal('https://babymonie.github.io/bridgekit/#plugins');return;}
     if(operation==='discover'){await controller.discover();changed();return payload();}
     if(operation==='setEnabled'){
       if(typeof args.enabled!=='boolean')throw Error('Expected enabled state');

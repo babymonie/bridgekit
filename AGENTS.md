@@ -48,7 +48,7 @@ Ad Cleaner uses panel/page.styles only: cosmetic filtering, not request blocking
 
 Do not commit copied third-party extensions, app archives, browser profiles, private logs, credentials, machine paths or user screenshots. Ignore root node_modules only; vendor nested dependencies are required. Preserve licenses and update THIRD_PARTY_NOTICES.md.
 
-Keep README, SDK and docs current. Supported means exact-build evidence, not Electron use alone. Requests use issue forms; private issues need collaborator access.
+Keep README, SDK and docs current. Supported means exact-build evidence, not Electron use alone. Requests use GitHub issue forms.
 
 ## General app patcher (0.5)
 

@@ -25,11 +25,12 @@ function render(){
   document.getElementById('empty').hidden=filtered.length>0;document.getElementById('counts').textContent=`${data.plugins.length} installed · ${data.plugins.filter(p=>p.enabled).length} enabled`;
   document.getElementById('reload-notice').hidden=!data.reloadRequired;document.getElementById('plugin-directory').textContent=data.pluginDirectory||'';
   const errors=document.getElementById('errors');errors.replaceChildren();errors.hidden=!data.discoveryErrors.length;if(data.discoveryErrors.length){errors.append(node('h2','Packages needing attention'));for(const error of data.discoveryErrors)errors.append(node('p',`${error.folder||error.id}: ${error.error}`));}
-  for(const id of ['install-folder','install-zip','discover','reload'])document.getElementById(id).disabled=busy;
+  for(const id of ['install-folder','install-zip','browse-store','discover','reload'])document.getElementById(id).disabled=busy;
   if(focus){const replacement=[...list.querySelectorAll('[data-plugin]')].find(el=>el.dataset.plugin===focus.id&&el.dataset.action===focus.action);replacement?.focus();}
 }
 document.getElementById('install-folder').addEventListener('click',()=>action(()=>api.installFolder(),'Plugin installed disabled. Enable it when ready.'));
 document.getElementById('install-zip').addEventListener('click',()=>action(()=>api.installZip(),'Plugin installed disabled. Enable it when ready.'));
+document.getElementById('browse-store').addEventListener('click',()=>action(()=>api.openStore(),'Opened the plugin store in your browser.'));
 document.getElementById('discover').addEventListener('click',()=>action(()=>api.discover(),'Plugin folders scanned.'));
 document.getElementById('reload').addEventListener('click',()=>action(()=>api.reload(),'Reload requested.'));
 search.addEventListener('input',render);

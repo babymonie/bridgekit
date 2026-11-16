@@ -8,7 +8,7 @@ BridgeKit is an Electron app patcher and permission-scoped plugin framework. Its
 
 ## Start here
 
-Requires Node.js 22+ and npm. The repository is private.
+Requires Node.js 22+ and npm. See the [installation guides and plugin store](https://babymonie.github.io/bridgekit/).
 
 ```powershell
 git clone https://github.com/babymonie/bridgekit.git
@@ -102,4 +102,4 @@ Original source is [MIT licensed](LICENSE). BridgeKit is independent of the app 
 
 ## Wand companion plugins
 
-[Game Notebook and Session Planner](docs/wand-plugins.md) are independent, disabled-by-default packages for the `wand` profile. The SDK notebook saves per-game notes; the Chrome MV3 planner saves session goals and a break deadline. Native mode is required only for the planner. Install their individual folders or ZIPs through Wand’s Bridge manager.
+[Game Notebook and Session Planner](docs/wand-plugins.md) are independent, disabled-by-default packages for the `wand` profile. The SDK notebook saves per-game notes; the Chrome MV3 planner saves session goals and a break deadline. Native mode is required only for the planner. Install their individual folders or ZIPs through Wandâ€™s Bridge manager.

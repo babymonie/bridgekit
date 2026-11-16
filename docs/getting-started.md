@@ -1,6 +1,6 @@
 # Getting started
 
-Install Node.js 22+, clone this private repository and run:
+Install Node.js 22+, clone the BridgeKit repository and run:
 
 ```powershell
 npm ci

@@ -16,3 +16,9 @@ Adapters choose pages/windows; generic runtime must not name plugins; packages o
 Original contributions are MIT licensed. Preserve dependency notices. Do not commit app archives, third-party extensions, profiles, credentials, private screenshots or machine reports. FORECAST remains an ignored local fixture.
 
 See AGENTS.md and [testing](docs/testing.md).
+
+## Submit a plugin
+
+[Open a plugin submission](https://github.com/babymonie/bridgekit/issues/new?template=plugin-submission.yml) with the source and license, target app builds, permissions, network access, and install and disable test results. Maintainers review submissions before listing them.
+
+The store publishes packages from explicitly listed, tracked plugin directories. When adding an accepted package, update `site/catalog.json` and run `node tools/build-site.cjs`. The build tests each ZIP through BridgeKit's actual importer and stages the site in `work/site-dist`.

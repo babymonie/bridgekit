@@ -1,0 +1,32 @@
+name: Submit a plugin
+description: Propose an original open-source package for the BridgeKit plugin store
+title: "[Plugin] "
+body:
+  - type: input
+    id: source
+    attributes:
+      label: Public source repository and release or commit
+      placeholder: https://github.com/owner/plugin/tree/v1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What does it do?
+      description: Include its license, targeted app profile IDs and the Bridge SDK or Chrome format it uses.
+    validations:
+      required: true
+  - type: textarea
+    id: permissions
+    attributes:
+      label: Requested permissions and external services
+      description: Explain why each permission is needed and list any network requests.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Installation and test evidence
+      description: Include the exact app build, platform and steps to install, verify and disable it.
+    validations:
+      required: true

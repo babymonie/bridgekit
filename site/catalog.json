@@ -1,0 +1,18 @@
+[
+  {
+    "id": "faceit-ad-cleaner",
+    "description": "Collapse selected ad placements in the FACEIT desktop interface. Disable it to restore the original layout."
+  },
+  {
+    "id": "wand-game-notebook",
+    "description": "Save notes and ideas for individual games. Suggest a title from an approved Wand window."
+  },
+  {
+    "id": "wand-session-planner",
+    "description": "Keep a local goal checklist and break timer. Requires partial Chrome extension compatibility."
+  },
+  {
+    "id": "hello-panel",
+    "description": "Try the Bridge SDK demo for plugin settings, local storage and page integration."
+  }
+]
