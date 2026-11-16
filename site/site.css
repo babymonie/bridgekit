@@ -25,7 +25,7 @@ a:hover { color: var(--acid); }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.25rem; }
 .brand img { border-radius: 7px; }
 .repo, .eyebrow, kbd, code, .tag, .state, .console-head, .console-foot, .results { font-family: var(--mono); }
-.hero { padding-block: clamp(52px, 10vw, 124px); display: grid; align-items: center; grid-template-columns: 1.3fr 1fr; gap: clamp(28px, 5vw, 72px); }
+.hero { padding-block: clamp(52px, 10vw, 124px); display: grid; align-items: center; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); }
 .eyebrow { color: var(--acid); font-size: .76rem; font-weight: 600; letter-spacing: .14em; margin: 0 0 14px; }
 h1, h2, h3, p { margin-top: 0; }
 h1 { font-size: clamp(3rem, 7vw, 6.25rem); letter-spacing: -.085em; line-height: .97; margin-bottom: 24px; }
@@ -77,13 +77,13 @@ pre { max-width: 100%; overflow: auto; border: 1px solid var(--line); border-rad
 .footer p { margin: 0 auto 0 0; }
 @media (max-width: 760px) {
   .wrap { width: calc(100% - 36px); }
-  .hero, .install-grid, .guides { grid-template-columns: 1fr; }
+  .hero, .install-grid, .guides { grid-template-columns: minmax(0, 1fr); }
   #faceit { grid-row: auto; }
   .header { flex-wrap: wrap; gap: 10px 16px; }
   .header nav { order: 3; width: 100%; }
 }
 @media (max-width: 520px) {
-  .cards { grid-template-columns: 1fr; }
+  .cards { grid-template-columns: minmax(0, 1fr); }
   .console-body { padding: 12px; }
   .console-plugin { flex-wrap: wrap; }
 }
